@@ -43,7 +43,7 @@ public class Main {
         // Create the collection if it doesn't exist yet.
         // TODO Override implementation to map TEXT to VARCHAR
         // Craeted manually for the moment
-        //collection.createCollectionAsync().block();
+        collection.createCollectionAsync().block();
 
         // Upsert a record.
         collection.upsertAsync(new Hotel("1",
