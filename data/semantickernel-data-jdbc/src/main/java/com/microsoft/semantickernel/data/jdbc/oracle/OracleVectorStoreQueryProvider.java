@@ -129,6 +129,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
                     try (PreparedStatement insert = connection.prepareStatement(
                         insertCollectionQuery)) {
+                        System.out.println(insertCollectionQuery);
                         insert.setString(1, collectionName);
                         insert.execute();
                     }
