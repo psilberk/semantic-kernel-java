@@ -159,7 +159,7 @@ public class OracleVectorStoreRecordMapper<Record>
                                 case "REAL":
                                     value = resultSet.getFloat(field.getEffectiveStorageName());
                                     break;
-                                case "DOUBLE":
+                                case "DOUBLE PRECISION":
                                     value = resultSet.getDouble(field.getEffectiveStorageName());
                                     break;
                                 case "BOOLEAN":
@@ -178,10 +178,15 @@ public class OracleVectorStoreRecordMapper<Record>
                             JsonNode genericNode = objectMapper.valueToTree(value);
                             objectNode.set(field.getEffectiveStorageName(), genericNode);
                         }
-                        if (options.isIncludeVectors()) {
+                        if (options != null && options.isIncludeVectors()) {
                             for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition.getVectorFields()) {
                                 Object value = resultSet.getObject(field.getEffectiveStorageName(), float[].class);
                                 JsonNode genericNode = objectMapper.valueToTree(value);
+                                objectNode.set(field.getEffectiveStorageName(), genericNode);
+                            }
+                        } else {
+                            for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition.getVectorFields()) {
+                                JsonNode genericNode = objectMapper.valueToTree(null);
                                 objectNode.set(field.getEffectiveStorageName(), genericNode);
                             }
                         }

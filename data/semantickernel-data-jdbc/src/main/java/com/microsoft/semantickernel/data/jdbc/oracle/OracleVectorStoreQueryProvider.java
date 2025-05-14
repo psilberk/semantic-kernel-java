@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -40,6 +41,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
     private static final Object dbCreationLock = new Object();
 
+    Logger logger = Logger.getLogger(OracleVectorStoreQueryProvider.class.getName());
 
     public enum StringTypeMapping {
         /**
@@ -96,8 +98,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         supportedDataTypes.put(long.class, "LONG");
         supportedDataTypes.put(Float.class, "REAL");
         supportedDataTypes.put(float.class, "REAL");
-        supportedDataTypes.put(Double.class, "DOUBLE");
-        supportedDataTypes.put(double.class, "DOUBLE");
+        supportedDataTypes.put(Double.class, "DOUBLE PRECISION");
+        supportedDataTypes.put(double.class, "DOUBLE PRECISION");
         supportedDataTypes.put(Boolean.class, "BOOLEAN");
         supportedDataTypes.put(boolean.class, "BOOLEAN");
         supportedDataTypes.put(OffsetDateTime.class, "TIMESTAMPTZ");
@@ -107,8 +109,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
     private String createIndexForVectorField(String collectionName, VectorStoreRecordVectorField vectorField) {
         switch (vectorField.getIndexKind()) {
-            case HNSW:
-                // TODO: create IVFFLAT for now
             case IVFFLAT:
                 return "CREATE VECTOR INDEX IF NOT EXISTS "
                     + getIndexName(vectorField.getEffectiveStorageName())
@@ -117,8 +117,11 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     + " ORGANIZATION NEIGHBOR PARTITIONS "
                     + " WITH DISTANCE COSINE "
                     + "PARAMETERS ( TYPE IVF )";
+            case UNDEFINED:
+                return null;
             default:
-                throw new IllegalArgumentException("Unsupported index kind: " + vectorField.getIndexKind());
+                logger.warning("Unsupported index kind: " + vectorField.getIndexKind());
+                return null;
         }
     }
 
@@ -245,7 +248,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                 if (field instanceof VectorStoreRecordVectorField) {
                     // Convert the vector field to a string
                     if (!field.getFieldType().equals(String.class)) {
-                        double[] values = StreamSupport.stream(((ArrayNode)valueNode).spliterator(), false).mapToDouble(d -> d.asDouble()).toArray();
+                        double[] values = valueNode == null ? null :  StreamSupport.stream(((ArrayNode)valueNode).spliterator(), false).mapToDouble(d -> d.asDouble()).toArray();
                         statement.setObject(i + 1, values, OracleType.VECTOR_FLOAT64);
                         System.out.println("Set values: " + values);
                         continue;
