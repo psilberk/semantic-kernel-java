@@ -3,6 +3,8 @@ package com.microsoft.semantickernel.data.jdbc;
 
 import com.microsoft.semantickernel.builders.SemanticKernelBuilder;
 import com.microsoft.semantickernel.data.jdbc.mysql.MySQLVectorStoreQueryProvider;
+import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreQueryProvider;
+import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreRecordMapper;
 import com.microsoft.semantickernel.data.jdbc.postgres.PostgreSQLVectorStoreQueryProvider;
 import com.microsoft.semantickernel.data.jdbc.postgres.PostgreSQLVectorStoreRecordMapper;
 import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResults;
@@ -85,7 +87,14 @@ public class JDBCVectorStoreRecordCollection<Record>
                     .withRecordClass(options.getRecordClass())
                     .withVectorStoreRecordDefinition(recordDefinition)
                     .build();
-                // Default mapper for other databases
+                // Default mapper for Oralce
+            } else if (this.queryProvider instanceof OracleVectorStoreQueryProvider) {
+                vectorStoreRecordMapper = OracleVectorStoreRecordMapper.<Record>builder()
+                    .withRecordClass(options.getRecordClass())
+                    .withVectorStoreRecordDefinition(recordDefinition)
+                    .withSupportedDataTypesMapping(queryProvider.getSupportedDataTypes())
+                    .build();
+                // Default mapper for other database
             } else {
                 vectorStoreRecordMapper = JDBCVectorStoreRecordMapper.<Record>builder()
                     .withRecordClass(options.getRecordClass())

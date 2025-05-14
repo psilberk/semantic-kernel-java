@@ -6,9 +6,12 @@ import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreOptions;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreRecordCollectionOptions;
 import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreQueryProvider;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordCollection;
+import com.microsoft.semantickernel.data.vectorstorage.options.GetRecordOptions;
 import com.microsoft.semantickernel.samples.documentationexamples.data.index.Hotel;
 import oracle.jdbc.datasource.impl.OracleDataSource;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class Main {
@@ -49,12 +52,14 @@ public class Main {
         collection.upsertAsync(new Hotel("1",
                     "HotelOne",
                     "My Description for HotelOne",
-                    Collections.emptyList(), Collections.emptyList()),
+                    Arrays.asList(Float.valueOf(1), Float.valueOf(2), Float.valueOf(3), Float.valueOf(4)),
+                    Arrays.asList("test", "test 2")),
                 null)
             .block();
 
         // Retrieve the upserted record.
-//        var retrievedHotel = collection.getAsync("1", null).block();
+        var retrievedHotel = collection.getAsync("1", new GetRecordOptions(true)).block();
+        System.out.println(retrievedHotel.getHotelId());
 
         // Generate a vector for your search text, using your chosen embedding generation implementation.
         // Just showing a placeholder method here for brevity.
