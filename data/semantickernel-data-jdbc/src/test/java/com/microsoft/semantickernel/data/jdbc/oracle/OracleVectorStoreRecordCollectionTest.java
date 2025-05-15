@@ -15,11 +15,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -176,8 +179,8 @@ public class OracleVectorStoreRecordCollectionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(DistanceFunction.class)
-    public void exactSearch(DistanceFunction distanceFunction) {
+    @MethodSource("parametersExactSearch")
+    public void exactSearch(DistanceFunction distanceFunction, List<Double> expectedDistance) {
         List<Hotel> hotels = getHotels();
         recordCollection.upsertBatchAsync(hotels, null).block();
 
@@ -192,7 +195,15 @@ public class OracleVectorStoreRecordCollectionTest {
         assertNotNull(results);
         assertEquals(3, results.size());
         // The third hotel should be the most similar
+        System.out.println(results.get(0).getScore());
+        System.out.println(results.get(1).getScore());
+        System.out.println(results.get(2).getScore());
         assertEquals(hotels.get(2).getId(), results.get(0).getRecord().getId());
+        assertEquals(expectedDistance.get(0).doubleValue(), results.get(0).getScore(), 0.0001d);
+        assertEquals(hotels.get(0).getId(), results.get(1).getRecord().getId());
+        assertEquals(expectedDistance.get(1).doubleValue(), results.get(1).getScore(), 0.0001d);
+        assertEquals(hotels.get(3).getId(), results.get(2).getRecord().getId());
+        assertEquals(expectedDistance.get(2).doubleValue(), results.get(2).getScore(), 0.0001d);
 
         options = VectorSearchOptions.builder()
             .withVectorFieldName(distanceFunction.getValue())
@@ -206,11 +217,12 @@ public class OracleVectorStoreRecordCollectionTest {
         assertEquals(1, results.size());
         // The first hotel should be the most similar
         assertEquals(hotels.get(0).getId(), results.get(0).getRecord().getId());
+        assertEquals(results.get(0).getScore(), expectedDistance.get(1), 0.001d);
     }
 
     @ParameterizedTest
-    @EnumSource(DistanceFunction.class)
-    public void searchWithFilter(DistanceFunction distanceFunction) {
+    @MethodSource("distanceFunctionAndDistance")
+    public void searchWithFilter(DistanceFunction distanceFunction, double expectedDistance) {
         List<Hotel> hotels = getHotels();
         recordCollection.upsertBatchAsync(hotels, null).block();
 
@@ -229,6 +241,26 @@ public class OracleVectorStoreRecordCollectionTest {
         assertEquals(3, results.size());
         // The first hotel should be the most similar
         assertEquals(hotels.get(0).getId(), results.get(0).getRecord().getId());
+        assertEquals(results.get(0).getScore(), expectedDistance, 0.0001d);
     }
 
+    private static Stream<Arguments> distanceFunctionAndDistance() {
+        return Stream.of(
+            Arguments.of (DistanceFunction.COSINE_DISTANCE, 0.8548d),
+            Arguments.of (DistanceFunction.COSINE_SIMILARITY, 0.1451d),
+            Arguments.of (DistanceFunction.DOT_PRODUCT, 30.3399d),
+            Arguments.of (DistanceFunction.EUCLIDEAN_DISTANCE, 18.9081d),
+            Arguments.of (DistanceFunction.UNDEFINED, 18.9081d)
+        );
+    }
+
+    private static Stream<Arguments> parametersExactSearch() {
+        return Stream.of(
+            Arguments.of (DistanceFunction.COSINE_SIMILARITY, Arrays.asList(0.9999d, 0.1451d, 0.0178d)),
+            Arguments.of (DistanceFunction.COSINE_DISTANCE, Arrays.asList(1.6422E-5d, 0.8548d, 0.9821d)),
+            Arguments.of (DistanceFunction.DOT_PRODUCT, Arrays.asList(202.3399d, 30.3399d, 3.6199d)),
+            Arguments.of (DistanceFunction.EUCLIDEAN_DISTANCE, Arrays.asList(0.1000d, 18.9081d, 19.9669d)),
+            Arguments.of (DistanceFunction.UNDEFINED, Arrays.asList(0.1000d, 18.9081d, 19.9669d))
+        );
+    }
 }

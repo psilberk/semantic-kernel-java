@@ -5,20 +5,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreQueryProvider;
+import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResult;
+import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResults;
+import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordMapper;
+import com.microsoft.semantickernel.data.vectorstorage.definition.DistanceFunction;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDefinition;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordKeyField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordVectorField;
+import com.microsoft.semantickernel.data.vectorstorage.options.GetRecordOptions;
 import com.microsoft.semantickernel.data.vectorstorage.options.UpsertRecordOptions;
+import com.microsoft.semantickernel.data.vectorstorage.options.VectorSearchOptions;
 import com.microsoft.semantickernel.exceptions.SKException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import oracle.jdbc.OracleResultSet;
+import oracle.jdbc.OracleStatement;
 import oracle.jdbc.OracleType;
+import oracle.jdbc.OracleTypes;
 
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -286,6 +296,138 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
     private String getNamedWildcard(List<VectorStoreRecordField> fields) {
         return fields.stream().map(f -> "? " + f.getEffectiveStorageName())
             .collect(Collectors.joining(", "));
+    }
+
+    @Override
+    public <Record> VectorSearchResults<Record> search(String collectionName, List<Float> vector,
+        VectorSearchOptions options, VectorStoreRecordDefinition recordDefinition,
+        VectorStoreRecordMapper<Record, ResultSet> mapper) {
+
+        VectorStoreRecordVectorField firstVectorField = recordDefinition.getVectorFields()
+            .get(0);
+        VectorStoreRecordVectorField vectorField = options.getVectorFieldName() == null
+            ? firstVectorField
+            : (VectorStoreRecordVectorField) recordDefinition
+                .getField(options.getVectorFieldName());
+        DistanceFunction distanceFunction = vectorField.getDistanceFunction();
+
+        List<VectorStoreRecordField> fields;
+        if (options.isIncludeVectors()) {
+            fields = recordDefinition.getAllFields();
+        } else {
+            fields = recordDefinition.getNonVectorFields();
+        }
+
+        String filter = getFilter(options.getVectorSearchFilter(), recordDefinition);
+        List<Object> parameters = getFilterParameters(options.getVectorSearchFilter());
+
+        String selectQuery = "SELECT "
+            + formatQuery("VECTOR_DISTANCE(%s, ?, %s) distance, ", vectorField.getEffectiveStorageName(), toOracleDistanceFunction(distanceFunction))
+            + getQueryColumnsFromFields(fields)
+            + " FROM " + getCollectionTableName(collectionName)
+            + (filter != null && !filter.isEmpty() ? " WHERE " + filter : "")
+            + " ORDER BY distance"
+            + (options.getSkip() > 0 ? " OFFSET " + options.getSkip() + " ROWS" : "")
+            + (options.getTop() > 0 ? " FETCH " + (options.getSkip() > 0 ? "NEXT " : "FIRST ") + options.getTop() + " ROWS ONLY" : "");
+
+        System.out.println(selectQuery);
+        List<VectorSearchResult<Record>> records = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(selectQuery)) {
+            // set parameters from filters
+            int parameterIndex = 1;
+
+            statement.setString(parameterIndex++,
+                objectMapper.writeValueAsString(vector));
+            System.out.println("Set vector parameter to: " + objectMapper.writeValueAsString(vector));
+            for (Object parameter : parameters) {
+                statement.setObject(parameterIndex++, parameter);
+                System.out.println("Set parameter " + parameterIndex + " to: " + parameter);
+            }
+
+            // Calls to defineColumnType reduce the number of network requests. When Oracle JDBC knows that it is
+            // fetching VECTOR, CLOB, and/or JSON columns, the first request it sends to the database can include a LOB
+            // prefetch size (VECTOR and JSON are value-based-lobs). If defineColumnType is not called, then JDBC needs
+            // to send an additional request with the LOB prefetch size, after the first request has the database
+            // respond with the column data types. To request all data, the prefetch size is Integer.MAX_VALUE.
+            OracleStatement oracleStatement = statement.unwrap(OracleStatement.class);
+            int columnIndex = 1;
+            defineDataColumnType(columnIndex++, oracleStatement, Double.class);
+            for (VectorStoreRecordField field : fields) {
+                if (field instanceof VectorStoreRecordDataField)
+                    defineDataColumnType(columnIndex++, oracleStatement, field.getFieldType());
+                else
+                    oracleStatement.defineColumnType(columnIndex++, OracleTypes.VECTOR_FLOAT32, Integer.MAX_VALUE);
+            }
+            oracleStatement.setLobPrefetchSize(Integer.MAX_VALUE); // Workaround for Oracle JDBC bug 37030121
+
+            // get result set
+            try (ResultSet rs = statement.executeQuery()) {
+                GetRecordOptions getRecordOptions = new GetRecordOptions(options.isIncludeVectors());
+                while (rs.next()) {
+                    // Cosine distance function. 1 - cosine similarity.
+                    double score = Math.abs(rs.getDouble("distance"));
+                    if (distanceFunction == DistanceFunction.COSINE_SIMILARITY) {
+                        score = 1d - score;
+                    }
+                    records.add(new VectorSearchResult<>(mapper.mapStorageModelToRecord(rs, getRecordOptions), score));
+                }
+            }
+        } catch (SQLException | JsonProcessingException e) {
+            logger.info(e.getMessage());
+            throw  new SKException("Search failed", e);
+        }
+
+
+
+        return new VectorSearchResults<>(records);
+    }
+
+    private void defineDataColumnType(int columnIndex, OracleStatement statement, Class<?> fieldType) throws SQLException {
+        // swich between supported classes and define the column type on the statement
+        switch (supportedDataTypes.get(fieldType)) {
+            case "CLOB":
+                statement.defineColumnType(columnIndex, OracleTypes.CLOB, Integer.MAX_VALUE);
+                break;
+            case "INTEGER":
+                statement.defineColumnType(columnIndex, OracleTypes.INTEGER);
+                break;
+            case "LONG":
+                statement.defineColumnType(columnIndex, OracleTypes.BIGINT);
+                break;
+            case "REAL":
+                statement.defineColumnType(columnIndex, OracleTypes.REAL);
+                break;
+            case "DOUBLE PRECISION":
+                statement.defineColumnType(columnIndex, OracleTypes.BINARY_DOUBLE);
+                break;
+            case "BOOLEAN":
+                statement.defineColumnType(columnIndex, OracleTypes.BOOLEAN);
+                break;
+            case "TIMESTAMPTZ":
+                statement.defineColumnType(columnIndex, OracleTypes.TIMESTAMPTZ);
+                break;
+            case "JSON":
+                statement.defineColumnType(columnIndex, OracleTypes.JSON, Integer.MAX_VALUE);
+                break;
+            default:
+                statement.defineColumnType(columnIndex, OracleTypes.VARCHAR);
+        }
+    }
+
+
+    private String toOracleDistanceFunction(DistanceFunction distanceFunction) {
+        switch (distanceFunction) {
+            case DOT_PRODUCT:
+                return "DOT";
+            case COSINE_SIMILARITY:
+            case COSINE_DISTANCE:
+                return "COSINE";
+            case EUCLIDEAN_DISTANCE:
+                return "EUCLIDEAN";
+            default:
+                return "COSINE";
+        }
     }
 
     public static Builder builder() {
