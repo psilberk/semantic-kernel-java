@@ -2,11 +2,6 @@
 package com.microsoft.semantickernel.data.jdbc;
 
 import com.microsoft.semantickernel.builders.SemanticKernelBuilder;
-import com.microsoft.semantickernel.data.jdbc.mysql.MySQLVectorStoreQueryProvider;
-import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreQueryProvider;
-import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreRecordMapper;
-import com.microsoft.semantickernel.data.jdbc.postgres.PostgreSQLVectorStoreQueryProvider;
-import com.microsoft.semantickernel.data.jdbc.postgres.PostgreSQLVectorStoreRecordMapper;
 import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResults;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordCollection;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordMapper;
@@ -55,7 +50,7 @@ public class JDBCVectorStoreRecordCollection<Record>
     public JDBCVectorStoreRecordCollection(
         @Nonnull DataSource dataSource,
         @Nonnull String collectionName,
-        @Nonnull JDBCVectorStoreRecordCollectionOptions<Record> options) {
+            @Nonnull JDBCVectorStoreRecordCollectionOptions<Record> options) {
         this.collectionName = collectionName;
         this.options = options;
 
@@ -73,40 +68,15 @@ public class JDBCVectorStoreRecordCollection<Record>
             this.queryProvider = options.getQueryProvider();
         }
 
-        // If mapper is not provided, set a default one
-        if (options.getVectorStoreRecordMapper() == null) {
-            // Default mapper for PostgreSQL
-            if (this.queryProvider instanceof PostgreSQLVectorStoreQueryProvider) {
-                vectorStoreRecordMapper = PostgreSQLVectorStoreRecordMapper.<Record>builder()
-                    .withRecordClass(options.getRecordClass())
-                    .withVectorStoreRecordDefinition(recordDefinition)
-                    .build();
-                // Default mapper for MySQL
-            } else if (this.queryProvider instanceof MySQLVectorStoreQueryProvider) {
-                vectorStoreRecordMapper = JDBCVectorStoreRecordMapper.<Record>builder()
-                    .withRecordClass(options.getRecordClass())
-                    .withVectorStoreRecordDefinition(recordDefinition)
-                    .build();
-                // Default mapper for Oralce
-            } else if (this.queryProvider instanceof OracleVectorStoreQueryProvider) {
-                vectorStoreRecordMapper = OracleVectorStoreRecordMapper.<Record>builder()
-                    .withRecordClass(options.getRecordClass())
-                    .withVectorStoreRecordDefinition(recordDefinition)
-                    .withSupportedDataTypesMapping(queryProvider.getSupportedDataTypes())
-                    .build();
-                // Default mapper for other database
-            } else {
-                vectorStoreRecordMapper = JDBCVectorStoreRecordMapper.<Record>builder()
-                    .withRecordClass(options.getRecordClass())
-                    .withVectorStoreRecordDefinition(recordDefinition)
-                    .build();
-            }
-        } else {
-            vectorStoreRecordMapper = options.getVectorStoreRecordMapper();
-        }
+        this.vectorStoreRecordMapper = getVectorStoreRecordMapper(options);
 
         // Check if the types are supported
         queryProvider.validateSupportedTypes(recordDefinition);
+    }
+
+    public VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+            JDBCVectorStoreRecordCollectionOptions<Record> options) {
+        return options.getVectorStoreRecordMapper();
     }
 
     /**

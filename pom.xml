@@ -77,6 +77,8 @@
         <module>aiservices/huggingface</module>
         <module>data/semantickernel-data-azureaisearch</module>
         <module>data/semantickernel-data-jdbc</module>
+        <module>data/semantickernel-data-others</module>
+        <module>data/semantickernel-data-oracle</module>
         <module>data/semantickernel-data-redis</module>
     </modules>
 

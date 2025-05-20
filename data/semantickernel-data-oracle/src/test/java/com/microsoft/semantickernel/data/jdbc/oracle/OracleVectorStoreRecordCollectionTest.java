@@ -10,6 +10,7 @@ import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResult;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordCollection;
 import com.microsoft.semantickernel.data.vectorstorage.definition.DistanceFunction;
 import com.microsoft.semantickernel.data.vectorstorage.options.VectorSearchOptions;
+import oracle.jdbc.OracleConnection;
 import oracle.jdbc.datasource.impl.OracleDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +20,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,25 +32,75 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.testcontainers.oracle.OracleContainer;
+
 public class OracleVectorStoreRecordCollectionTest {
     private static VectorStoreRecordCollection<String, Hotel> recordCollection;
 
+    private static final String ORACLE_IMAGE_NAME = "gvenzl/oracle-free:23.7-slim-faststart";
+    private static final OracleDataSource DATA_SOURCE;
+    private static final OracleDataSource SYSDBA_DATA_SOURCE;
+
+
+    static {
+
+        try {
+            DATA_SOURCE = new oracle.jdbc.datasource.impl.OracleDataSource();
+            SYSDBA_DATA_SOURCE = new oracle.jdbc.datasource.impl.OracleDataSource();
+            String urlFromEnv = System.getenv("ORACLE_JDBC_URL");
+
+            if (urlFromEnv == null) {
+                // The Ryuk component is relied upon to stop this container.
+                OracleContainer oracleContainer = new OracleContainer(ORACLE_IMAGE_NAME)
+                    .withStartupTimeout(Duration.ofSeconds(600))
+                    .withConnectTimeoutSeconds(600)
+                    .withDatabaseName("pdb1")
+                    .withUsername("testuser")
+                    .withPassword("testpwd");
+                oracleContainer.start();
+
+                initDataSource(
+                    DATA_SOURCE,
+                    oracleContainer.getJdbcUrl(),
+                    oracleContainer.getUsername(),
+                    oracleContainer.getPassword());
+                initDataSource(SYSDBA_DATA_SOURCE, oracleContainer.getJdbcUrl(), "sys", oracleContainer.getPassword());
+            } else {
+                initDataSource(
+                    DATA_SOURCE,
+                    urlFromEnv,
+                    System.getenv("ORACLE_JDBC_USER"),
+                    System.getenv("ORACLE_JDBC_PASSWORD"));
+                initDataSource(
+                    SYSDBA_DATA_SOURCE,
+                    urlFromEnv,
+                    System.getenv("ORACLE_JDBC_USER"),
+                    System.getenv("ORACLE_JDBC_PASSWORD"));
+            }
+            SYSDBA_DATA_SOURCE.setConnectionProperty(OracleConnection.CONNECTION_PROPERTY_INTERNAL_LOGON, "SYSDBA");
+
+        } catch (SQLException sqlException) {
+            throw new AssertionError(sqlException);
+        }
+    }
+
+    static void initDataSource(OracleDataSource dataSource, String url, String username, String password) {
+        dataSource.setURL(url);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+    }
+
     @BeforeAll
     public static void setup() throws Exception {
-        // Configure the data source
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setURL("jdbc:oracle:thin:@localhost:1521/FREEPDB1");
-        dataSource.setUser("scott");
-        dataSource.setPassword("tiger");
 
         // Build a query provider
         OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
-            .withDataSource(dataSource)
+            .withDataSource(DATA_SOURCE)
             .build();
 
         // Build a vector store
         JDBCVectorStore vectorStore = JDBCVectorStore.builder()
-            .withDataSource(dataSource)
+            .withDataSource(DATA_SOURCE)
             .withOptions(JDBCVectorStoreOptions.builder()
                 .withQueryProvider(queryProvider)
                 .build())
@@ -71,19 +124,19 @@ public class OracleVectorStoreRecordCollectionTest {
 
     private static List<Hotel> getHotels() {
         return Arrays.asList(
-            new Hotel("id_1", "Hotel 1", 1, "Hotel 1 description",
+            new Hotel("id_1", "Hotel 1", 1, 1.49d, null, "Hotel 1 description",
                 Arrays.asList(0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f), null, null, null,
                 4.0),
-            new Hotel("id_2", "Hotel 2", 2, "Hotel 2 description",
+            new Hotel("id_2", "Hotel 2", 2, 1.44d, null, "Hotel 2 description with free-text search",
                 Arrays.asList(-2.0f, 8.1f, 0.9f, 5.4f, -3.3f, 2.2f, 9.9f, -4.5f), null, null, null,
                 4.0),
-            new Hotel("id_3", "Hotel 3", 3, "Hotel 3 description",
+            new Hotel("id_3", "Hotel 3", 3, 1.53d, null, "Hotel 3 description",
                 Arrays.asList(4.5f, -6.2f, 3.1f, 7.7f, -0.8f, 1.1f, -2.2f, 8.3f), null, null, null,
                 5.0),
-            new Hotel("id_4", "Hotel 4", 4, "Hotel 4 description",
+            new Hotel("id_4", "Hotel 4", 4, 1.35d, null, "Hotel 4 description",
                 Arrays.asList(7.0f, 1.2f, -5.3f, 2.5f, 6.6f, -7.8f, 3.9f, -0.1f), null, null, null,
                 4.0),
-            new Hotel("id_5", "Hotel 5", 5, "Hotel 5 description",
+            new Hotel("id_5", "Hotel 5", 5, 1.89d, null,"Hotel 5 description",
                 Arrays.asList(-3.5f, 4.4f, -1.2f, 9.9f, 5.7f, -6.1f, 7.8f, -2.0f), null, null, null,
                 4.0));
     }

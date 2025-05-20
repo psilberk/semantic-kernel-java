@@ -46,6 +46,14 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.semantic-kernel</groupId>
+            <artifactId>semantickernel-data-others</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.semantic-kernel</groupId>
+            <artifactId>semantickernel-data-oracle</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.semantic-kernel</groupId>
             <artifactId>semantickernel-data-redis</artifactId>
         </dependency>
 
@@ -130,11 +138,6 @@
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-module-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.semantic-kernel</groupId>
-            <artifactId>semantickernel-data-jdbc</artifactId>
-            <version>1.4.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.semantic-kernel</groupId>

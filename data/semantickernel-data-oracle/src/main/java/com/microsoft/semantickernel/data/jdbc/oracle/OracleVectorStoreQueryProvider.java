@@ -127,6 +127,13 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     + " ORGANIZATION NEIGHBOR PARTITIONS "
                     + " WITH DISTANCE COSINE "
                     + "PARAMETERS ( TYPE IVF )";
+            case HNSW:
+                return "CREATE VECTOR INDEX IF NOT EXISTS " + getIndexName(vectorField.getEffectiveStorageName())
+                    + " ON "
+                    + getCollectionTableName(collectionName) + "( " + vectorField.getEffectiveStorageName() + " ) "
+                    + "ORGANIZATION INMEMORY GRAPH "
+                    + "WITH DISTANCE COSINE "
+                    + "PARAMETERS (TYPE HNSW)";
             case UNDEFINED:
                 return null;
             default:
@@ -187,6 +194,15 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     System.out.println(createStorageTable);
                     statement.addBatch(createStorageTable);
 
+                    // Index filterable columns
+                    for (VectorStoreRecordDataField dataField : recordDefinition.getDataFields()) {
+                        if (dataField.isFilterable()) {
+                            String dataFieldIndex = createIndexForDataField(collectionName, dataField);
+                            System.out.println(dataFieldIndex);
+                            statement.addBatch(dataFieldIndex);
+                        }
+                    }
+
                     // Create indexed for vectorFields
                     for (VectorStoreRecordVectorField vectorField : vectorFields) {
                         String createVectorIndex = createIndexForVectorField(collectionName,
@@ -215,6 +231,16 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                 throw new SKException("Failed to create collection", e);
             }
         }
+    }
+
+    private String createIndexForDataField(String collectionName, VectorStoreRecordDataField dataField) {
+        String dataFieldIndex = "CREATE INDEX %s ON %s (%s ASC)";
+        return formatQuery(dataFieldIndex,
+            getCollectionTableName(collectionName) + "_" + dataField.getEffectiveStorageName(),
+            getCollectionTableName(collectionName),
+            dataField.getEffectiveStorageName()
+        );
+
     }
 
     @Override

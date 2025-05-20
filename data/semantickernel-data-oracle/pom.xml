@@ -8,9 +8,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>semantickernel-data-jdbc</artifactId>
-    <name>Semantic Kernel JDBC connector</name>
-    <description>Provides a JDBC connector for the Semantic Kernel</description>
+    <artifactId>semantickernel-data-oracle</artifactId>
+    <name>Semantic Kernel Oracle connector</name>
+    <description>Provides a Oracle connector for the Semantic Kernel</description>
 
     <properties>
         <testcontainers.version>1.20.4</testcontainers.version>
@@ -32,6 +32,10 @@
         <dependency>
             <groupId>com.microsoft.semantic-kernel</groupId>
             <artifactId>semantickernel-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.semantic-kernel</groupId>
+            <artifactId>semantickernel-data-jdbc</artifactId>
         </dependency>
 
         <dependency>
