@@ -31,7 +31,7 @@
     <dependencies>
         <dependency>
             <groupId>com.microsoft.semantic-kernel</groupId>
-            <artifactId>semantickernel-api</artifactId>
+            <artifactId>semantickernel-api-data</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.semantic-kernel</groupId>
