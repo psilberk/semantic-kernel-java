@@ -53,6 +53,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
     Logger logger = Logger.getLogger(OracleVectorStoreQueryProvider.class.getName());
 
+    private String upsertQuery;
+
     public enum StringTypeMapping {
         /**
          * Maps String to CLOB
@@ -187,6 +189,14 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     System.out.println(createStorageTable);
                     statement.addBatch(createStorageTable);
 
+                    // Index filterable columns
+                    for (VectorStoreRecordDataField dataField : recordDefinition.getDataFields()) {
+                        if (dataField.isFilterable()) {
+                            String dataFieldIndex = createIndexForDataField(collectionName, dataField);
+                            System.out.println(dataFieldIndex);
+                            statement.addBatch(dataFieldIndex);
+                        }
+                    }
                     // Create indexed for vectorFields
                     for (VectorStoreRecordVectorField vectorField : vectorFields) {
                         String createVectorIndex = createIndexForVectorField(collectionName,
@@ -217,20 +227,47 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         }
     }
 
+    private String createIndexForDataField(String collectionName, VectorStoreRecordDataField dataField) {
+        String dataFieldIndex = "CREATE INDEX %s ON %s (%s ASC)";
+        return formatQuery(dataFieldIndex,
+            getCollectionTableName(collectionName) + "_" + dataField.getEffectiveStorageName(),
+            getCollectionTableName(collectionName),
+            dataField.getEffectiveStorageName()
+        );
+
+    }
+
     @Override
     public void upsertRecords(String collectionName, List<?> records, VectorStoreRecordDefinition recordDefinition, UpsertRecordOptions options) {
 
-        String upsertQuery = formatQuery("MERGE INTO %s existing "+
-                "USING (SELECT %s FROM DUAL) new ON (existing.%s = new.%s) " +
-                "WHEN MATCHED THEN UPDATE SET %s " +
-                "WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)",
-            getCollectionTableName(collectionName),
-            getNamedWildcard(recordDefinition.getAllFields()),
-            getKeyColumnName(recordDefinition.getKeyField()),
-            getKeyColumnName(recordDefinition.getKeyField()),
-            getUpdateFieldList(recordDefinition.getKeyField(), recordDefinition.getAllFields(), "existing", "new"),
-            getInsertFieldList(recordDefinition.getKeyField(), recordDefinition.getAllFields(), "existing"),
-            getInsertFieldList(recordDefinition.getKeyField(), recordDefinition.getAllFields(), "new"));
+        // generate update query once and reuse
+        if (upsertQuery == null) {
+            String nameFields = recordDefinition.getAllFields().stream()
+                .map(f -> "? " + f.getEffectiveStorageName())
+                .collect(Collectors.joining(", "));
+            String updateFieldList = recordDefinition.getAllFields().stream()
+                .filter(f -> f != recordDefinition.getKeyField())
+                .map(f -> "existing." + f.getEffectiveStorageName() + " = new."
+                    + f.getEffectiveStorageName())
+                .collect(Collectors.joining(", "));
+            String insertFieldList = recordDefinition.getAllFields().stream()
+                .map(f -> "existing." + f.getEffectiveStorageName())
+                .collect(Collectors.joining(", "));
+            String valuesFieldList = recordDefinition.getAllFields().stream()
+                .map(f -> "new." + f.getEffectiveStorageName())
+                .collect(Collectors.joining(", "));
+
+            upsertQuery = formatQuery("MERGE INTO %s existing " +
+                    "USING (SELECT %s FROM DUAL) new ON (existing.%s = new.%s) " +
+                    "WHEN MATCHED THEN UPDATE SET %s " +
+                    "WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)",
+                getCollectionTableName(collectionName),
+                nameFields,
+                getKeyColumnName(recordDefinition.getKeyField()),
+                getKeyColumnName(recordDefinition.getKeyField()),
+                updateFieldList,
+                insertFieldList, valuesFieldList);
+        }
 
         System.out.println(upsertQuery);
         try (Connection connection = dataSource.getConnection();
@@ -279,23 +316,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                 throw new RuntimeException(e);
             }
         }
-    }
-    private String getInsertFieldList(VectorStoreRecordKeyField key, List<VectorStoreRecordField> fields, String alias) {
-        return fields.stream().map(f -> alias + "." + f.getEffectiveStorageName())
-            .collect(Collectors.joining(", "));
-    }
-
-    private String getUpdateFieldList(VectorStoreRecordKeyField key, List<VectorStoreRecordField> fields, String oldAlias, String newAlias) {
-        return fields.stream().filter(f -> f != key).map(f -> oldAlias + "." + f.getEffectiveStorageName() + " = " +
-            newAlias + "." + f.getEffectiveStorageName())
-            .collect(Collectors.joining(", "));
-
-    }
-
-
-    private String getNamedWildcard(List<VectorStoreRecordField> fields) {
-        return fields.stream().map(f -> "? " + f.getEffectiveStorageName())
-            .collect(Collectors.joining(", "));
     }
 
     @Override
