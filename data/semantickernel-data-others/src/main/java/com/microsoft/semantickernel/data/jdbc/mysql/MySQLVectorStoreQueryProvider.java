@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreQueryProvider;
+import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreRecordMapper;
 import com.microsoft.semantickernel.data.jdbc.SQLVectorStoreQueryProvider;
+import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordMapper;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDefinition;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordField;
@@ -18,6 +20,7 @@ import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,6 +121,16 @@ public class MySQLVectorStoreQueryProvider extends
         } catch (SQLException e) {
             throw new SKException("Failed to upsert records", e);
         }
+    }
+
+    @Override
+    public <Record> VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+        Class<Record> recordClass,
+        VectorStoreRecordDefinition vectorStoreRecordDefinition) {
+        return JDBCVectorStoreRecordMapper.<Record>builder()
+            .withRecordClass(recordClass)
+            .withVectorStoreRecordDefinition(vectorStoreRecordDefinition)
+            .build();
     }
 
     /**

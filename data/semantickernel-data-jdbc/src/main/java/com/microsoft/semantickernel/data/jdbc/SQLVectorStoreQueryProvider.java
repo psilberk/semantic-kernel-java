@@ -151,6 +151,11 @@ public interface SQLVectorStoreQueryProvider {
         VectorStoreRecordDefinition recordDefinition,
         VectorStoreRecordMapper<Record, ResultSet> mapper);
 
+
+    <Record> VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+        final Class<Record> recordClass,
+        final VectorStoreRecordDefinition vectorStoreRecordDefinition);
+
     /**
      * The builder for the JDBC vector store query provider.
      */

@@ -579,6 +579,16 @@ public class JDBCVectorStoreQueryProvider
                 distanceFunction, options));
     }
 
+    @Override
+    public <Record> VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+        Class<Record> recordClass,
+        VectorStoreRecordDefinition vectorStoreRecordDefinition) {
+        return JDBCVectorStoreRecordMapper.<Record>builder()
+            .withRecordClass(recordClass)
+            .withVectorStoreRecordDefinition(vectorStoreRecordDefinition)
+            .build();
+    }
+
     /**
      * Validates an SQL identifier.
      *

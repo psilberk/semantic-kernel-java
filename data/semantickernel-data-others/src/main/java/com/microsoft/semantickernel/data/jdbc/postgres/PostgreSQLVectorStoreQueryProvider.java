@@ -447,6 +447,16 @@ public class PostgreSQLVectorStoreQueryProvider extends
         return String.format("%s @> ?::jsonb", fieldName);
     }
 
+    @Override
+    public <Record> VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+        Class<Record> recordClass,
+        VectorStoreRecordDefinition vectorStoreRecordDefinition) {
+        return PostgreSQLVectorStoreRecordMapper.<Record>builder()
+            .withRecordClass(recordClass)
+            .withVectorStoreRecordDefinition(vectorStoreRecordDefinition)
+            .build();
+    }
+
     /**
      * A builder for the PostgreSQLVectorStoreQueryProvider class.
      */

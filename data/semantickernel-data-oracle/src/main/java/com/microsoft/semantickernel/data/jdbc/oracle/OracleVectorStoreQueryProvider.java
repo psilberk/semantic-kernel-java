@@ -127,13 +127,13 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     + " ORGANIZATION NEIGHBOR PARTITIONS "
                     + " WITH DISTANCE COSINE "
                     + "PARAMETERS ( TYPE IVF )";
-            case HNSW:
-                return "CREATE VECTOR INDEX IF NOT EXISTS " + getIndexName(vectorField.getEffectiveStorageName())
-                    + " ON "
-                    + getCollectionTableName(collectionName) + "( " + vectorField.getEffectiveStorageName() + " ) "
-                    + "ORGANIZATION INMEMORY GRAPH "
-                    + "WITH DISTANCE COSINE "
-                    + "PARAMETERS (TYPE HNSW)";
+//            case HNSW:
+//                return "CREATE VECTOR INDEX IF NOT EXISTS " + getIndexName(vectorField.getEffectiveStorageName())
+//                    + " ON "
+//                    + getCollectionTableName(collectionName) + "( " + vectorField.getEffectiveStorageName() + " ) "
+//                                + "ORGANIZATION INMEMORY GRAPH "
+//                    + "WITH DISTANCE COSINE "
+//                    + "PARAMETERS (TYPE HNSW)";
             case UNDEFINED:
                 return null;
             default:
@@ -458,6 +458,17 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public <Record> VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
+        Class<Record> recordClass,
+        VectorStoreRecordDefinition vectorStoreRecordDefinition) {
+        return OracleVectorStoreRecordMapper.<Record>builder()
+            .withRecordClass(recordClass)
+            .withVectorStoreRecordDefinition(vectorStoreRecordDefinition)
+            .withSupportedDataTypesMapping(getSupportedDataTypes())
+            .build();
     }
 
     public static class Builder

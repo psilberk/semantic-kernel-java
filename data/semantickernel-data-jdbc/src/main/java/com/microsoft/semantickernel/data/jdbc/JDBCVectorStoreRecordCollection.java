@@ -68,15 +68,15 @@ public class JDBCVectorStoreRecordCollection<Record>
             this.queryProvider = options.getQueryProvider();
         }
 
-        this.vectorStoreRecordMapper = getVectorStoreRecordMapper(options);
+        if (options.getVectorStoreRecordMapper() == null) {
+            this.vectorStoreRecordMapper = this.queryProvider.getVectorStoreRecordMapper(
+                options.getRecordClass(), recordDefinition);
+        } else {
+            this.vectorStoreRecordMapper = options.getVectorStoreRecordMapper();
+        }
 
         // Check if the types are supported
         queryProvider.validateSupportedTypes(recordDefinition);
-    }
-
-    public VectorStoreRecordMapper<Record, ResultSet> getVectorStoreRecordMapper(
-            JDBCVectorStoreRecordCollectionOptions<Record> options) {
-        return options.getVectorStoreRecordMapper();
     }
 
     /**
