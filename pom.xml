@@ -70,11 +70,16 @@
     <modules>
         <module>semantickernel-bom</module>
         <module>semantickernel-api</module>
+        <module>semantickernel-api-localization</module>
+        <module>semantickernel-api-exceptions</module>
+        <module>semantickernel-api-builders</module>
+        <module>semantickernel-api-services</module>
         <module>semantickernel-experimental</module>
         <module>samples</module>
         <module>aiservices/openai</module>
         <module>aiservices/google</module>
         <module>aiservices/huggingface</module>
+        <module>data/semantickernel-api-data</module>
         <module>data/semantickernel-data-azureaisearch</module>
         <module>data/semantickernel-data-jdbc</module>
         <module>data/semantickernel-data-others</module>
@@ -131,6 +136,31 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-ai-openai</artifactId>
                 <version>${azure-ai-openai.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.semantic-kernel</groupId>
+                <artifactId>semantickernel-api-data</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.semantic-kernel</groupId>
+                <artifactId>semantickernel-api-exceptions</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.semantic-kernel</groupId>
+                <artifactId>semantickernel-api-builders</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.semantic-kernel</groupId>
+                <artifactId>semantickernel-api-localization</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.semantic-kernel</groupId>
+                <artifactId>semantickernel-api-services</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.semantic-kernel</groupId>
