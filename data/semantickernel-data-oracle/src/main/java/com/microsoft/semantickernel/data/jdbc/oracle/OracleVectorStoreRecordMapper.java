@@ -1,13 +1,16 @@
-// Copyright (c) Microsoft. All rights reserved.
+/*
+ ** Semantic Kernel Oracle connector version 1.0.
+ **
+ ** Copyright (c) 2025 Oracle and/or its affiliates.
+ ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
+ */
 package com.microsoft.semantickernel.data.jdbc.oracle;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.semantickernel.builders.SemanticKernelBuilder;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordMapper;
-import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDefinition;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordVectorField;
@@ -16,13 +19,11 @@ import com.microsoft.semantickernel.exceptions.SKException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import oracle.jdbc.OracleResultSet;
 import oracle.jdbc.provider.oson.OsonModule;
-import oracle.sql.json.OracleJsonArray;
-import oracle.sql.json.OracleJsonObject;
+import oracle.sql.TIMESTAMPTZ;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiFunction;
 
 /**
@@ -72,6 +73,7 @@ public class OracleVectorStoreRecordMapper<Record>
         private VectorStoreRecordDefinition vectorStoreRecordDefinition;
         private Map<Class<?>, String> supportedDataTypesMapping;
         private ObjectMapper objectMapper = new ObjectMapper();
+        private Map<Class<?>, String> annotatedTypeMapping;
 
         /**
          * Sets the record class.
@@ -118,6 +120,11 @@ public class OracleVectorStoreRecordMapper<Record>
         public Builder<Record> withSupportedDataTypesMapping(
             Map<Class<?>, String> supportedDataTypesMapping) {
             this.supportedDataTypesMapping = supportedDataTypesMapping;
+            return this;
+        }
+
+        public Builder<Record> withAnnotatedTypeMapping(Map<Class<?>, String> annotatedTypeMapping) {
+            this.annotatedTypeMapping = annotatedTypeMapping;
             return this;
         }
 
@@ -175,6 +182,18 @@ public class OracleVectorStoreRecordMapper<Record>
                                     value = resultSet.getBoolean(field.getEffectiveStorageName());
                                     break;
                                 case OracleDataTypesMapping.OFFSET_DATE_TIME:
+<<<<<<< add-oracle-store
+                                    TIMESTAMPTZ timestamptz = ((OracleResultSet)resultSet).getTIMESTAMPTZ(field.getEffectiveStorageName());
+                                    value = timestamptz != null ? timestamptz.offsetDateTimeValue() : null;
+                                    break;
+                                case OracleDataTypesMapping.BYTE_ARRAY:
+                                    value = resultSet.getBytes(field.getEffectiveStorageName());
+                                    break;
+                                case OracleDataTypesMapping.UUID:
+                                    String uuidValue = resultSet.getString(field.getEffectiveStorageName());
+                                    value = uuidValue == null ? null : UUID.fromString(uuidValue);
+                                    break;
+=======
                                     value = ((OracleResultSet)resultSet).getTIMESTAMPTZ(field.getEffectiveStorageName())
                                         .offsetDateTimeValue();
                                     break;
@@ -183,13 +202,21 @@ public class OracleVectorStoreRecordMapper<Record>
                                     break;
                                 // fallthrough
                                 case OracleDataTypesMapping.UUID:
+>>>>>>> main
                                 case OracleDataTypesMapping.JSON:
                                     value = resultSet.getObject(field.getEffectiveStorageName(), fieldType);
                                     break;
                                 default:
                                     value = resultSet.getString(field.getEffectiveStorageName());
                             }
+                            // Result set getter method sometimes returns a default value when NULL,
+                            // set value to null in that case.
+                            if (resultSet.wasNull()) {
+                                value = null;
+                            }
+
                             JsonNode genericNode = objectMapper.valueToTree(value);
+
                             objectNode.set(field.getEffectiveStorageName(), genericNode);
                         }
                         if (options != null && options.isIncludeVectors()) {

@@ -1,7 +1,20 @@
+<<<<<<< add-oracle-store
+/*
+ ** Semantic Kernel Oracle connector version 1.0.
+ **
+ ** Copyright (c) 2025 Oracle and/or its affiliates.
+ ** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
+ */
+=======
+>>>>>>> main
 package com.microsoft.semantickernel.data.jdbc.oracle;
 
 import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreQueryProvider.StringTypeMapping;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
+<<<<<<< add-oracle-store
+import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordField;
+=======
+>>>>>>> main
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordKeyField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordVectorField;
 import oracle.jdbc.OracleTypes;
@@ -16,10 +29,22 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
+<<<<<<< add-oracle-store
+ * Helper class for field operations. Handles mapping between field java types to DB types and
+ * generating SQL statement to create field indexes.
+ */
+class OracleVectorStoreFieldHelper {
+
+    /**
+     * The logger
+     */
+    private static final Logger LOGGER = Logger.getLogger(OracleVectorStoreFieldHelper.class.getName());
+=======
  * Helper class for field operations.
  */
 public class OracleVectorStoreFieldHelper {
     private static final Logger LOGGER = Logger.getLogger(OracleVectorStoreQueryProvider.class.getName());
+>>>>>>> main
 
     /**
      * Maps supported key java classes to Oracle database types
@@ -27,6 +52,8 @@ public class OracleVectorStoreFieldHelper {
     private static final HashMap<Class<?>, String> supportedKeyTypes = new HashMap() {
         {
             put(String.class, String.format(OracleDataTypesMapping.STRING_VARCHAR, 255));
+<<<<<<< add-oracle-store
+=======
             put(short.class, OracleDataTypesMapping.SHORT);
             put(Short.class, OracleDataTypesMapping.SHORT);
             put(int.class, OracleDataTypesMapping.INTEGER);
@@ -34,6 +61,7 @@ public class OracleVectorStoreFieldHelper {
             put(long.class, OracleDataTypesMapping.LONG);
             put(Long.class, OracleDataTypesMapping.LONG);
             put(UUID .class, OracleDataTypesMapping.UUID);
+>>>>>>> main
         }
     };
 
@@ -47,6 +75,8 @@ public class OracleVectorStoreFieldHelper {
             put(Collection.class, OracleDataTypesMapping.VECTOR_FLOAT);
             put(float[].class, OracleDataTypesMapping.VECTOR_FLOAT);
             put(Float[].class, OracleDataTypesMapping.VECTOR_FLOAT);
+<<<<<<< add-oracle-store
+=======
 /*
             put(byte[].class,"VECTOR(%s, INT8)");
             put(Byte[].class,"VECTOR(%s, INT8)");
@@ -55,6 +85,7 @@ public class OracleVectorStoreFieldHelper {
             put(boolean[].class,"VECTOR(%s, BINARY)");
             put(Boolean[].class,"VECTOR(%s, BINARY)");
  */
+>>>>>>> main
         }
     };
 
@@ -83,6 +114,14 @@ public class OracleVectorStoreFieldHelper {
             put(byte[].class, OracleDataTypesMapping.BYTE_ARRAY);
             put(List.class, OracleDataTypesMapping.JSON);
         }
+<<<<<<< add-oracle-store
+    };
+
+    /**
+     * Suffix added to the effective column name to generate the index name for a vector column.
+     */
+    public static final String VECTOR_INDEX_SUFFIX = "_VECTOR_INDEX";
+=======
 
     };
 
@@ -103,6 +142,7 @@ public class OracleVectorStoreFieldHelper {
 */
         }
     };
+>>>>>>> main
 
     /**
      * Gets the mapping between the supported Java key types and the Oracle database type.
@@ -120,12 +160,20 @@ public class OracleVectorStoreFieldHelper {
      */
     public static Map<Class<?>, String> getSupportedDataTypes(
         StringTypeMapping stringTypeMapping, int defaultVarCharLength) {
+<<<<<<< add-oracle-store
+        String stringType = stringTypeMapping.equals(StringTypeMapping.USE_VARCHAR)
+            ? String.format(OracleDataTypesMapping.STRING_VARCHAR, defaultVarCharLength)
+            : OracleDataTypesMapping.STRING_CLOB;
+        supportedDataTypes.put(String.class, stringType);
+        LOGGER.finest("Mapping String columns to " + stringType);
+=======
 
         if (stringTypeMapping.equals(StringTypeMapping.USE_VARCHAR)) {
             supportedDataTypes.put(String.class, String.format(OracleDataTypesMapping.STRING_VARCHAR, defaultVarCharLength));
         } else {
             supportedDataTypes.put(String.class, OracleDataTypesMapping.STRING_CLOB);
         }
+>>>>>>> main
         return supportedDataTypes;
     }
 
@@ -176,14 +224,22 @@ public class OracleVectorStoreFieldHelper {
      */
     public static String createIndexForDataField(String collectionTableName, VectorStoreRecordDataField dataField, Map<Class<?>, String> supportedDataTypes) {
         if (supportedDataTypes.get(dataField.getFieldType()) == "JSON") {
+<<<<<<< add-oracle-store
+            String dataFieldIndex = "CREATE MULTIVALUE INDEX IF NOT EXISTS %s ON %s t (t.%s.%s)";
+=======
             String dataFieldIndex = "CREATE MULTIVALUE INDEX %s ON %s t (t.%s.%s)";
+>>>>>>> main
             return String.format(dataFieldIndex,
                 collectionTableName + "_" + dataField.getEffectiveStorageName(),
                 collectionTableName,
                 dataField.getEffectiveStorageName(),
                 getFunctionForType(supportedDataTypes.get(dataField.getFieldSubType())));
         }  else {
+<<<<<<< add-oracle-store
+            String dataFieldIndex = "CREATE INDEX IF NOT EXISTS %s ON %s (%s ASC)";
+=======
             String dataFieldIndex = "CREATE INDEX %s ON %s (%s ASC)";
+>>>>>>> main
             return String.format(dataFieldIndex,
                 collectionTableName + "_" + dataField.getEffectiveStorageName(),
                 collectionTableName,
@@ -193,6 +249,53 @@ public class OracleVectorStoreFieldHelper {
     }
 
     /**
+<<<<<<< add-oracle-store
+     * Returns vector columns names and types for CREATE TABLE statement
+     * @param fields list of vector record fields.
+     * @return comma separated list of columns and types for CREATE TABLE statement.
+     */
+    public static String getVectorColumnNamesAndTypes(List<VectorStoreRecordVectorField> fields) {
+        List<String> columns = fields.stream()
+            .map(field -> field.getEffectiveStorageName() + " " +
+                OracleVectorStoreFieldHelper.getTypeForVectorField(field)
+            ).collect(Collectors.toList());
+
+        return String.join(", ", columns);
+    }
+
+    /**
+     * Returns key column names and type for key column for CREATE TABLE statement
+     * @param field the key field.
+     * @return column name and type of the key field for CREATE TABLE statement.
+     */
+    public static String getKeyColumnNameAndType(VectorStoreRecordKeyField field) {
+        return field.getEffectiveStorageName() + " " + supportedKeyTypes.get(field.getFieldType());
+    }
+
+
+    /**
+     * Generates the index name given the field name. by suffixing "_VECTOR_INDEX" to the field name.
+     * @param effectiveStorageName the field name.
+     * @return the index name.
+     */
+    private static String getIndexName(String effectiveStorageName) {
+        return effectiveStorageName + VECTOR_INDEX_SUFFIX;
+    }
+
+    /**
+     * Gets the type of the vector given the field definition. This method is not needed if only
+     *
+     * @param field the vector field definition.
+     * @return returns the type of vector for the given field type.
+     */
+    private static String getTypeForVectorField(VectorStoreRecordVectorField field) {
+        String dimension = field.getDimensions() > 0 ? String.valueOf(field.getDimensions()) : "*";
+        return String.format(supportedVectorTypes.get(field.getFieldType()), dimension);
+    }
+
+    /**
+=======
+>>>>>>> main
      * Gets the function that allows to return the function that converts the JSON value to the
      * data type.
      * @param jdbcType The JDBC type.
@@ -218,6 +321,8 @@ public class OracleVectorStoreFieldHelper {
         }
     }
 
+<<<<<<< add-oracle-store
+=======
     /**
      * Gets the type of the vector given the field definition. This method is not needed if only
      *
@@ -304,4 +409,5 @@ public class OracleVectorStoreFieldHelper {
         return field.getEffectiveStorageName() + " " + supportedKeyTypes.get(field.getFieldType());
     }
 
+>>>>>>> main
 }
