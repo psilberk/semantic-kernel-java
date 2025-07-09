@@ -1,5 +1,7 @@
 package com.microsoft.semantickernel.data.jdbc.oracle;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStore;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreOptions;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreRecordCollectionOptions;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -271,6 +274,83 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
             () -> mapper.mapRecordToStorageModel(new DummyRecord()));
         assertEquals("Not implemented", ex.getMessage());
     }
+
+    // corner case for OracleVectorStoreQueryProvider#Builder
+    @Test
+    void testOracleQueryProviderBuilder() throws NoSuchFieldException, IllegalAccessException {
+        OracleVectorStoreQueryProvider provider = OracleVectorStoreQueryProvider.builder()
+            .withDataSource(DATA_SOURCE)
+            .withCollectionsTable("myCollection")
+            .withPrefixForCollectionTables("myPrefix_")
+            .build();
+
+        java.lang.reflect.Field collectionsTable =
+            provider.getClass().getDeclaredField("collectionsTable");
+        collectionsTable.setAccessible(true);
+        assertEquals("myCollection", collectionsTable.get(provider));
+
+        java.lang.reflect.Field prefix =
+            provider.getClass().getSuperclass().getDeclaredField("prefixForCollectionTables");
+        prefix.setAccessible(true);
+        assertEquals("myPrefix_", prefix.get(provider));
+    }
+
+    @Test
+    void testOracleQueryProviderBuilder_withDefaultVarcharSize() {
+        OracleVectorStoreQueryProvider provider = OracleVectorStoreQueryProvider.builder()
+            .withDataSource(DATA_SOURCE)
+            .withDefaultVarcharSize(1234)
+            .build();
+
+        JDBCVectorStore vectorStore = JDBCVectorStore.builder()
+            .withDataSource(DATA_SOURCE)
+            .withOptions(JDBCVectorStoreOptions.builder()
+                .withQueryProvider(provider)
+                .build())
+            .build();
+
+        VectorStoreRecordCollection<String, DummyRecordForCLOB> collection =
+            vectorStore.getCollection("with_default_varchar_size",
+                JDBCVectorStoreRecordCollectionOptions.<DummyRecordForCLOB>builder()
+                    .withRecordClass(DummyRecordForCLOB.class)
+                    .build()).createCollectionAsync().block();
+
+        try (Connection c = DATA_SOURCE.getConnection();
+            PreparedStatement st = c.prepareStatement(
+                "SELECT DATA_TYPE, DATA_LENGTH FROM USER_TAB_COLUMNS " +
+                    "WHERE TABLE_NAME = 'SKCOLLECTION_WITH_DEFAULT_VARCHAR_SIZE' " +
+                    "AND COLUMN_NAME = 'DESCRIPTION'")) {
+            ResultSet rs = st.executeQuery();
+            rs.next();
+            assertEquals("VARCHAR2", rs.getString("DATA_TYPE"));
+            assertEquals(1234, rs.getInt("DATA_LENGTH"));
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            collection.deleteCollectionAsync().block();
+        }
+    }
+
+    @Test
+    void testOracleQueryProviderBuilder_withObjectMapper()
+        throws NoSuchFieldException, IllegalAccessException {
+        ObjectMapper customerMapper = new ObjectMapper();
+        customerMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        OracleVectorStoreQueryProvider provider = OracleVectorStoreQueryProvider.builder()
+            .withDataSource(DATA_SOURCE)
+            .withObjectMapper(customerMapper)
+            .build();
+
+        java.lang.reflect.Field objectMapper =
+            provider.getClass().getDeclaredField("objectMapper");
+        objectMapper.setAccessible(true);
+        ObjectMapper actual = (ObjectMapper)objectMapper.get(provider);
+        assertSame(customerMapper, actual);
+        assertTrue(actual.isEnabled(SerializationFeature.INDENT_OUTPUT));
+    }
+
 
     private <T> VectorStoreRecordCollection<String, T> createCollection(
         String collectionName,
