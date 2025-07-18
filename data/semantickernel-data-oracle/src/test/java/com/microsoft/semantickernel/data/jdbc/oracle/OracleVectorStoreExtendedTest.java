@@ -14,17 +14,21 @@ import com.microsoft.semantickernel.data.vectorstorage.annotations.VectorStoreRe
 import com.microsoft.semantickernel.data.vectorstorage.annotations.VectorStoreRecordVector;
 import com.microsoft.semantickernel.data.vectorstorage.definition.DistanceFunction;
 import com.microsoft.semantickernel.data.vectorstorage.definition.IndexKind;
+import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDefinition;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordKeyField;
+import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordVectorField;
 import com.microsoft.semantickernel.data.vectorstorage.options.GetRecordOptions;
 import com.microsoft.semantickernel.data.vectorstorage.options.VectorSearchOptions;
 import com.microsoft.semantickernel.exceptions.SKException;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -87,6 +91,156 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
         assertIterableEquals(v1, rec.getVec());
 
         collection.deleteCollectionAsync().block();
+    }
+
+    // Test index types
+    @Nested
+    class HNSWIndexTests {
+        @Test
+        void testHNSWIndexIsCreatedSuccessfully() throws Exception {
+            VectorStoreRecordKeyField keyField = VectorStoreRecordKeyField.builder()
+                .withName("id")
+                .withStorageName("id")
+                .withFieldType(String.class)
+                .build();
+
+            VectorStoreRecordDataField dummyField = VectorStoreRecordDataField.builder()
+                .withName("dummy")
+                .withStorageName("dummy")
+                .withFieldType(String.class)
+                .isFilterable(false)
+                .build();
+
+            VectorStoreRecordVectorField hnswVector= VectorStoreRecordVectorField.builder()
+                .withName("hnsw")
+                .withStorageName("hnsw")
+                .withFieldType(List.class)
+                .withDimensions(8)
+                .withDistanceFunction(DistanceFunction.COSINE_SIMILARITY)
+                .withIndexKind(IndexKind.HNSW)
+                .build();
+
+            VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
+                Arrays.asList(keyField, dummyField, hnswVector)
+            );
+
+            OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
+                .withDataSource(DATA_SOURCE)
+                .build();
+
+            JDBCVectorStore vectorStore = JDBCVectorStore.builder()
+                .withDataSource(DATA_SOURCE)
+                .withOptions(JDBCVectorStoreOptions.builder()
+                    .withQueryProvider(queryProvider)
+                    .build())
+                .build();
+
+            String collectionName = "skhotels_hnsw";
+            VectorStoreRecordCollection<String, Object> collection =
+                vectorStore.getCollection(collectionName,
+                    JDBCVectorStoreRecordCollectionOptions.<Object>builder()
+                        .withRecordClass(Object.class)
+                        .withRecordDefinition(definition)
+                        .build());
+
+            // create collection
+            collection.createCollectionAsync().block();
+
+            String expectedIndexName = hnswVector.getEffectiveStorageName().toUpperCase() + "_VECTOR_INDEX";
+
+            // check if index exist
+            try (Connection conn = DATA_SOURCE.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM USER_INDEXES WHERE INDEX_NAME=?")) {
+                stmt.setString(1, expectedIndexName);
+                ResultSet rs = stmt.executeQuery();
+                rs.next();
+                int count = rs.getInt(1);
+
+                assertEquals(1, count, "hnsw vector index should have been created");
+            } finally {
+                // clean up
+                try (Connection conn = DATA_SOURCE.getConnection();
+                    Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("DROP TABLE " + "SKCOLLECTION_" + collectionName);
+                }
+            }
+        }
+    }
+
+    @Nested
+    class UndefinedIndexTests {
+        @Test
+        void testNoIndexIsCreatedForUndefined() throws Exception {
+            // create key field
+            VectorStoreRecordKeyField keyField = VectorStoreRecordKeyField.builder()
+                .withName("id")
+                .withStorageName("id")
+                .withFieldType(String.class)
+                .build();
+
+            // create vector field, set IndexKind to UNDEFINED
+            VectorStoreRecordVectorField undefinedVector= VectorStoreRecordVectorField.builder()
+                .withName("undef")
+                .withStorageName("undef")
+                .withFieldType(List.class)
+                .withDimensions(8)
+                .withDistanceFunction(DistanceFunction.COSINE_SIMILARITY)
+                .withIndexKind(IndexKind.UNDEFINED)
+                .build();
+
+            VectorStoreRecordDataField dummyField = VectorStoreRecordDataField.builder()
+                .withName("dummy")
+                .withStorageName("dummy")
+                .withFieldType(String.class)
+                .isFilterable(false)
+                .build();
+
+            VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
+                Arrays.asList(keyField, dummyField,  undefinedVector)
+            );
+
+            OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
+                .withDataSource(DATA_SOURCE)
+                .build();
+
+            JDBCVectorStore vectorStore = JDBCVectorStore.builder()
+                .withDataSource(DATA_SOURCE)
+                .withOptions(JDBCVectorStoreOptions.builder()
+                    .withQueryProvider(queryProvider)
+                    .build())
+                .build();
+
+            String collectionName = "skhotels_undefined";
+            VectorStoreRecordCollection<String, Object> collection =
+                vectorStore.getCollection(collectionName,
+                    JDBCVectorStoreRecordCollectionOptions.<Object>builder()
+                        .withRecordClass(Object.class)
+                        .withRecordDefinition(definition)
+                        .build());
+
+            // create collection
+            collection.createCollectionAsync().block();
+
+            // check if index exist
+            String expectedIndexName = undefinedVector.getEffectiveStorageName().toUpperCase() + "_VETCOR_INDEX";
+            try (Connection conn = DATA_SOURCE.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM USER_INDEXES WHERE INDEX_NAME = ?")) {
+                stmt.setString(1, expectedIndexName);
+                ResultSet rs = stmt.executeQuery();
+                rs.next();
+                int count = rs.getInt(1);
+
+                assertEquals(0,count,"Vector index should not be created for IndexKind.UNDEFINED");
+            } finally {
+                // clean up
+                try (Connection conn = DATA_SOURCE.getConnection();
+                    Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("DROP TABLE " + "SKCOLLECTION_" + collectionName);
+                }
+            }
+        }
     }
 
     // Test corner-case
