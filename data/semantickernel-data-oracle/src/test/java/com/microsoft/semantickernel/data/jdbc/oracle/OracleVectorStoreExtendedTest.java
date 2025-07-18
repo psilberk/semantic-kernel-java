@@ -2,10 +2,10 @@ package com.microsoft.semantickernel.data.jdbc.oracle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.microsoft.semantickernel.data.filter.FilterClause;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStore;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreOptions;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreRecordCollectionOptions;
-import com.microsoft.semantickernel.data.jdbc.oracle.OracleVectorStoreQueryProvider.StringTypeMapping;
 import com.microsoft.semantickernel.data.vectorsearch.VectorSearchFilter;
 import com.microsoft.semantickernel.data.vectorsearch.VectorSearchResults;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordCollection;
@@ -138,6 +138,32 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
     }
 
     @Test
+    void testSearchClob() {
+        VectorStoreRecordCollection<String, DummyRecordForCLOB> collection =
+            createCollection(
+                "clob_long_text",
+                DummyRecordForCLOB.class,
+                OracleVectorStoreQueryProvider.StringTypeMapping.USE_CLOB);
+
+        String longText = String.join("", java.util.Collections.nCopies(6000, "a"));
+        DummyRecordForCLOB d1 = new DummyRecordForCLOB("small", longText, vec(2));
+        DummyRecordForCLOB d2 = new DummyRecordForCLOB("big", "short", vec(1));
+
+        collection.upsertBatchAsync(Arrays.asList(d1, d2), null).block();
+
+        VectorSearchResults<DummyRecordForCLOB> results =
+            collection.searchAsync(vec(1),
+                VectorSearchOptions.builder()
+                    .build()
+            ).block();
+        assertEquals(2, results.getTotalCount());
+        assertEquals("big", results.getResults().get(0).getRecord().getId());
+        assertEquals("small", results.getResults().get(1).getRecord().getId());
+
+        collection.deleteCollectionAsync().block();
+    }
+
+    @Test
     void testMultipleFilter() {
         VectorStoreRecordCollection<String, DummyRecordForMultipleFilter> collection =
             createCollection(
@@ -249,6 +275,22 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
         collection.deleteCollectionAsync().block();
     }
 
+    @Test
+    void testSearchVectorField_throws() {
+        VectorStoreRecordCollection<String, DummyRecord> collection =
+            createCollection(
+                "search_vector_field_throws",
+                DummyRecord.class,
+                null);
+
+        SKException ex = assertThrows(SKException.class, ()-> collection.searchAsync(
+            null, VectorSearchOptions.builder().withVectorFieldName("notexist").build()).block());
+        System.out.println(ex.getMessage());
+        assertTrue(ex.getMessage().contains("Field not found: notexist"));
+
+        collection.deleteCollectionAsync().block();
+    }
+
     // corner case for OracleVectorStoreRecordMapper
     @Test
     void testMapRecordToStorageModel_throws() {
@@ -273,6 +315,18 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
             UnsupportedOperationException.class,
             () -> mapper.mapRecordToStorageModel(new DummyRecord()));
         assertEquals("Not implemented", ex.getMessage());
+    }
+
+    // corner case for OracleVectorStoreQueryProvider
+    @Test
+    void testUnsupportedFilterClause() {
+        OracleVectorStoreQueryProvider provider = OracleVectorStoreQueryProvider.builder()
+            .withDataSource(DATA_SOURCE)
+            .build();
+        VectorSearchFilter filter = new VectorSearchFilter(Arrays.asList(new DummyFilterClause()));
+
+        SKException ex = assertThrows(SKException.class, () -> provider.getFilterParameters(filter));
+        assertTrue(ex.getMessage().contains("Unsupported filter clause type 'DummyFilterClause'."));
     }
 
     // corner case for OracleVectorStoreQueryProvider#Builder
@@ -555,4 +609,6 @@ public class OracleVectorStoreExtendedTest extends OracleCommonVectorStoreRecord
             return vec;
         }
     }
+
+    private static class DummyFilterClause implements FilterClause {}
 }
