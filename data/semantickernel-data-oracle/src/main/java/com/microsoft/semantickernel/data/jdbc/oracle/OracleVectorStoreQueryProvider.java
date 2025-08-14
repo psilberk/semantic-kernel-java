@@ -477,6 +477,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     + " ROWS ONLY"
                 : "");
         LOGGER.finest("Search using statement: " + selectQuery);
+        System.out.println("Search using statement: " + selectQuery);
 
         // Execute the statement
         List<VectorSearchResult<Record>> records = new ArrayList<>();
@@ -591,7 +592,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                 } else {
                     OffsetDateTime offsetDateTime = (OffsetDateTime) value;
                     ((OraclePreparedStatement) statement).setTIMESTAMPTZ(index,
-                        TIMESTAMPTZ.of(offsetDateTime));
+                            TIMESTAMPTZ.of(offsetDateTime));
+                    System.out.println("Set tile to: " + offsetDateTime);
                 }
                 return;
             }
@@ -609,6 +611,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
             // for all other types set object with the given value
             statement.setObject(index, value);
+            System.out.println("setObject: " + value);
 
         } catch (Exception ex) {
             throw new RuntimeException(ex);
