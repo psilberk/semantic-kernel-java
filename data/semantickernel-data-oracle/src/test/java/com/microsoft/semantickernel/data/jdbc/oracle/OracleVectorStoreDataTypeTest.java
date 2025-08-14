@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -152,10 +153,8 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertEquals(values.getShortValue(), result.getShortValue());
         assertEquals(values.getUuidValue(), result.getUuidValue());
         assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
-
+        assertIterableEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
         /*
-        assertEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
-        
         if (values.getOffsetDateTimeValue() != null) {
             assertTrue(values.getOffsetDateTimeValue().isEqual(result.getOffsetDateTimeValue()));
         } else {
