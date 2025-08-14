@@ -53,7 +53,7 @@ jobs:
 
       # Runs tests with Maven using the matrix JDK version
       - name: Run tests
-        run: ./mvnw -B -Pbug-check -Pcompile-jdk${{ matrix.java-versions }} test --file pom.xml -X
+        run: ./mvnw -B -Pbug-check -Pcompile-jdk${{ matrix.java-versions }} test --file pom.xml
 
       # Uploads test artifacts for each JDK version
       - uses: actions/upload-artifact@v4
