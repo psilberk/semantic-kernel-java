@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         # Defines a matrix strategy for JDK versions 8 and 17
-        java-versions: [8, 17]
+        java-versions: [8, 21]
 
     name: Java CI on JDK${{ matrix.java-versions }}
 
@@ -44,7 +44,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: ${{ steps.set-jdk.outputs.JDK_VERSION }}
-          distribution: oracle
+          distribution: microsoft
+          cache: maven
 
       # Builds the project with Maven using the matrix JDK version
       - name: Build with Maven
