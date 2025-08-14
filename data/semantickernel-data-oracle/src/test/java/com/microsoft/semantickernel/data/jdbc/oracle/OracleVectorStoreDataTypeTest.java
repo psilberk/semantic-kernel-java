@@ -90,6 +90,16 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertEquals(values.getIntegerValue(), result.getIntegerValue());
         assertIterableEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
         assertEquals(values.getLongValue(), result.getLongValue());
+        assertEquals(values.getShortValue(), result.getShortValue());
+        assertEquals(values.getUuidValue(), result.getUuidValue());
+        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null"
+                : record.getOffsetDateTimeValue().toInstant())
+                + " - " + (result.getOffsetDateTimeValue() == null ? "null"
+                        : result.getOffsetDateTimeValue().toInstant()));
+        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null"
+                : record.getOffsetDateTimeValue())
+                + " - " + (result.getOffsetDateTimeValue() == null ? "null"
+                        : result.getOffsetDateTimeValue()));
         /*
         if (values.getOffsetDateTimeValue() != null) {
             assertTrue(values.getOffsetDateTimeValue().isEqual(result.getOffsetDateTimeValue()));
@@ -97,8 +107,6 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
             assertTrue(result.getOffsetDateTimeValue() == null);
         }
         */
-        assertEquals(values.getShortValue(), result.getShortValue());
-        assertEquals(values.getUuidValue(), result.getUuidValue());
         
         collection.deleteCollectionAsync().block();
         }
@@ -134,21 +142,7 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         
         ClassWithAllPrimitiveTypes result = collection.getAsync(values.getId(), null).block();
         assertNotNull(result);
-        
-        System.out.println("result : " + result.getId());
-        System.out.println("boolean : " + record.getBooleanValue() + " - " + result.getBooleanValue() + " - "
-                + values.getBooleanValue());
-        System.out.println("byte : " + record.getByteValue() + " - " + result.getByteValue() + " - "
-                + values.getByteValue());
-        System.out.println("double : " + record.getDoubleValue() + " - " + result.getDoubleValue() + " - "
-                + values.getDoubleValue());
-        System.out.println("float : " + record.getFloatValue() + " - " + result.getFloatValue() + " - "
-                + values.getFloatValue());
-        System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue() + " - "
-                + values.getIntegerValue());
-        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null" : record
-                .getOffsetDateTimeValue().toInstant()) + " - " + (result.getOffsetDateTimeValue() == null ? "null"
-                        : result.getOffsetDateTimeValue().toInstant()) );
+
         assertEquals(values.getBooleanValue(), result.getBooleanValue());
         assertEquals(values.getByteValue(), result.getByteValue());
         assertEquals(values.getDoubleValue(), result.getDoubleValue());
@@ -159,6 +153,14 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertEquals(values.getUuidValue(), result.getUuidValue());
         assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
         assertIterableEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
+        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null"
+                : record.getOffsetDateTimeValue().toInstant())
+                + " - " + (result.getOffsetDateTimeValue() == null ? "null"
+                        : result.getOffsetDateTimeValue().toInstant()));
+        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null"
+                : record.getOffsetDateTimeValue())
+                + " - " + (result.getOffsetDateTimeValue() == null ? "null"
+                        : result.getOffsetDateTimeValue()));
         /*
         if (values.getOffsetDateTimeValue() != null) {
             assertTrue(values.getOffsetDateTimeValue().isEqual(result.getOffsetDateTimeValue()));

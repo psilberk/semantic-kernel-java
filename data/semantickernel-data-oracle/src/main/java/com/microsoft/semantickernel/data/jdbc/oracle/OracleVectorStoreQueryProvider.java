@@ -402,6 +402,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                             OffsetDateTime offsetDateTime = (OffsetDateTime) objectMapper
                                 .convertValue(valueNode, field.getFieldType());
                             upsertStatement.setObject(i + 1, offsetDateTime);
+                            System.out.println("Set time value to : " + offsetDateTime);
                         }
                         continue;
                     }
@@ -593,7 +594,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     OffsetDateTime offsetDateTime = (OffsetDateTime) value;
                     ((OraclePreparedStatement) statement).setTIMESTAMPTZ(index,
                             TIMESTAMPTZ.of(offsetDateTime));
-                    System.out.println("Set tile to: " + offsetDateTime);
+                    System.out.println("Set time to: " + offsetDateTime);
                 }
                 return;
             }
