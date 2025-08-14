@@ -93,7 +93,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
     /**
      * The logger
      */
-    private static final Logger LOGGER = Logger.getLogger(OracleVectorStoreQueryProvider.class.getName());
+    private static final Logger LOGGER = Logger
+        .getLogger(OracleVectorStoreQueryProvider.class.getName());
 
     public enum StringTypeMapping {
         /**
@@ -128,7 +129,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
             collectionsTable,
             prefixForCollectionTables,
             OracleVectorStoreFieldHelper.getSupportedKeyTypes(),
-            OracleVectorStoreFieldHelper.getSupportedDataTypes(stringTypeMapping, defaultVarcharSize),
+            OracleVectorStoreFieldHelper.getSupportedDataTypes(stringTypeMapping,
+                defaultVarcharSize),
             OracleVectorStoreFieldHelper.getSupportedVectorTypes());
         this.collectionsTable = collectionsTable;
         this.objectMapper = objectMapper;
@@ -162,11 +164,12 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
             List<VectorStoreRecordVectorField> vectorFields = recordDefinition.getVectorFields();
             String createStorageTable = formatQuery("CREATE TABLE IF NOT EXISTS %s ("
-                    + "%s PRIMARY KEY, "
-                    + "%s, "
-                    + "%s)",
+                + "%s PRIMARY KEY, "
+                + "%s, "
+                + "%s)",
                 getCollectionTableName(collectionName),
-                OracleVectorStoreFieldHelper.getKeyColumnNameAndType(recordDefinition.getKeyField()),
+                OracleVectorStoreFieldHelper
+                    .getKeyColumnNameAndType(recordDefinition.getKeyField()),
                 getColumnNamesAndTypes(new ArrayList<>(recordDefinition.getDataFields()),
                     getSupportedDataTypes()),
                 OracleVectorStoreFieldHelper.getVectorColumnNamesAndTypes(
@@ -186,8 +189,10 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     // Index filterable data columns
                     for (VectorStoreRecordDataField dataField : recordDefinition.getDataFields()) {
                         if (dataField.isFilterable()) {
-                            String dataFieldIndex = OracleVectorStoreFieldHelper.createIndexForDataField(
-                                getCollectionTableName(collectionName), dataField, supportedDataTypes);
+                            String dataFieldIndex = OracleVectorStoreFieldHelper
+                                .createIndexForDataField(
+                                    getCollectionTableName(collectionName), dataField,
+                                    supportedDataTypes);
                             statement.addBatch(dataFieldIndex);
                             LOGGER.finest("Creating index on column "
                                 + dataField.getEffectiveStorageName() + " using the statement: "
@@ -197,8 +202,9 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
                     // Create index for vectorFields
                     for (VectorStoreRecordVectorField vectorField : vectorFields) {
-                        String createVectorIndex = OracleVectorStoreFieldHelper.getCreateVectorIndexStatement(
-                            vectorField, getCollectionTableName(collectionName));
+                        String createVectorIndex = OracleVectorStoreFieldHelper
+                            .getCreateVectorIndexStatement(
+                                vectorField, getCollectionTableName(collectionName));
                         if (createVectorIndex != null) {
                             statement.addBatch(createVectorIndex);
                             LOGGER.finest("Creating index on vector column "
@@ -245,7 +251,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
      * @param options the options
      */
     @Override
-    @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING") 
+    @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
     public void upsertRecords(String collectionName,
         List<?> records,
         VectorStoreRecordDefinition recordDefinition,
@@ -257,32 +263,34 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         // generate the comma separated list of new fields
         // Ex.: new.field1, new.field2 ... new.fieldn
         String insertNewFieldList = recordDefinition.getAllFields().stream()
-            .map(f ->  NEW_VALUE + "." + f.getEffectiveStorageName())
+            .map(f -> NEW_VALUE + "." + f.getEffectiveStorageName())
             .collect(Collectors.joining(", "));
 
         // generate the comma separated list of existing fields
         // Ex.: existing.field1, existing.field2 ... existing.fieldn
         String insertExistingFieldList = recordDefinition.getAllFields().stream()
-            .map(f ->  EXISTING_VALUE + "." + f.getEffectiveStorageName())
+            .map(f -> EXISTING_VALUE + "." + f.getEffectiveStorageName())
             .collect(Collectors.joining(", "));
 
         // generate the comma separated list for setting new values on fields
         // Ex.: new.field1 = existing.field1, new.field2 = existing.field2 ... new.fieldn = existing.fieldn
         String updateFieldList = recordDefinition.getAllFields().stream()
             .filter(f -> f != recordDefinition.getKeyField())
-            .map(f -> EXISTING_VALUE + "." + f.getEffectiveStorageName() + " = " + NEW_VALUE + "." + f.getEffectiveStorageName())
+            .map(f -> EXISTING_VALUE + "." + f.getEffectiveStorageName() + " = " + NEW_VALUE + "."
+                + f.getEffectiveStorageName())
             .collect(Collectors.joining(", "));
 
         // generate the comma separated list of placeholders "?" for each field
         // Ex.: ? field1, ? field2 ... ? fieldn
-        String namedPlaceholders = recordDefinition.getAllFields().stream().map(f -> "? " + f.getEffectiveStorageName())
+        String namedPlaceholders = recordDefinition.getAllFields().stream()
+            .map(f -> "? " + f.getEffectiveStorageName())
             .collect(Collectors.joining(", "));
 
         // Generate the MERGE statement to perform the upsert.
-        String upsertStatement = formatQuery("MERGE INTO %s existing "+
-                "USING (SELECT %s FROM DUAL) new ON (existing.%s = new.%s) " +
-                "WHEN MATCHED THEN UPDATE SET %s " +
-                "WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)",
+        String upsertStatement = formatQuery("MERGE INTO %s existing " +
+            "USING (SELECT %s FROM DUAL) new ON (existing.%s = new.%s) " +
+            "WHEN MATCHED THEN UPDATE SET %s " +
+            "WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)",
             getCollectionTableName(collectionName),
             namedPlaceholders,
             getKeyColumnName(recordDefinition.getKeyField()),
@@ -316,8 +324,9 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
     @Override
     protected String getInsertCollectionQuery(String collectionsTable) {
         return formatQuery(
-            "MERGE INTO %s existing "+
-                "USING (SELECT ? AS collectionId FROM DUAL) new ON (existing.collectionId = new.collectionId) " +
+            "MERGE INTO %s existing " +
+                "USING (SELECT ? AS collectionId FROM DUAL) new ON (existing.collectionId = new.collectionId) "
+                +
                 "WHEN NOT MATCHED THEN INSERT (existing.collectionId) VALUES (new.collectionId)",
             collectionsTable);
     }
@@ -354,8 +363,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     if (!field.getFieldType().equals(String.class)) {
                         if (valueNode != null && !valueNode.isNull() && valueNode.isArray()) {
                             final float[] values = new float[valueNode.size()];
-                            for (int j = 0; j < ((ArrayNode)valueNode).size(); j++) {
-                                values[j] = ((ArrayNode)valueNode).get(j).floatValue();
+                            for (int j = 0; j < ((ArrayNode) valueNode).size(); j++) {
+                                values[j] = ((ArrayNode) valueNode).get(j).floatValue();
                             }
                             upsertStatement.setObject(i + 1, values, OracleTypes.VECTOR_FLOAT32);
                         } else {
@@ -380,7 +389,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                     }
                     // Convert UUID to string before setting the value.
                     if (field.getFieldType().equals(UUID.class)) {
-                        upsertStatement.setObject(i + 1, valueNode.isNull() ? null : valueNode.asText());
+                        upsertStatement.setObject(i + 1,
+                            valueNode.isNull() ? null : valueNode.asText());
                         continue;
                     }
                     // Convert value node (its representations depends on Jackson JSON features)
@@ -389,7 +399,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                         if (valueNode == null || valueNode.isNull()) {
                             upsertStatement.setNull(i + 1, OracleTypes.TIMESTAMPTZ);
                         } else {
-                            OffsetDateTime offsetDateTime = (OffsetDateTime) objectMapper.convertValue(valueNode, field.getFieldType());
+                            OffsetDateTime offsetDateTime = (OffsetDateTime) objectMapper
+                                .convertValue(valueNode, field.getFieldType());
                             upsertStatement.setObject(i + 1, offsetDateTime);
                         }
                         continue;
@@ -398,7 +409,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
                 // For all other field type use setObject with the field value
                 upsertStatement.setObject(i + 1,
-                    objectMapper.convertValue(valueNode,field.getFieldType()));
+                    objectMapper.convertValue(valueNode, field.getFieldType()));
             } catch (SQLException e) {
                 throw new SKException(e);
             }
@@ -428,7 +439,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         VectorSearchOptions options, VectorStoreRecordDefinition recordDefinition,
         VectorStoreRecordMapper<Record, ResultSet> mapper) {
 
-
         if (vector != null && recordDefinition.getVectorFields().isEmpty()) {
             throw new SKException("Record definition must contain at least one vector field"
                 + " to perform a vector search");
@@ -441,8 +451,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
             vectorField = getVectorFieldByName(recordDefinition, options.getVectorFieldName());
         }
 
-
-
         // get list of fields that should be returned by the query
         List<VectorStoreRecordField> fields = (options.isIncludeVectors())
             ? recordDefinition.getAllFields()
@@ -454,16 +462,20 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
         // generate SQL statement
         String selectQuery = "SELECT "
-            + (vector == null ? "0 as distance, " :
-                formatQuery("VECTOR_DISTANCE(%s, ?, %s) distance, ",
-                    OracleVectorStoreFieldHelper.validateObjectNaming(vectorField.getEffectiveStorageName()),
+            + (vector == null ? "0 as distance, "
+                : formatQuery("VECTOR_DISTANCE(%s, ?, %s) distance, ",
+                    OracleVectorStoreFieldHelper
+                        .validateObjectNaming(vectorField.getEffectiveStorageName()),
                     toOracleDistanceFunction(vectorField.getDistanceFunction())))
             + getQueryColumnsFromFields(fields)
             + " FROM " + getCollectionTableName(collectionName)
             + (filter != null && !filter.isEmpty() ? " WHERE " + filter : "")
             + " ORDER BY distance"
             + (options.getSkip() > 0 ? " OFFSET " + options.getSkip() + " ROWS" : "")
-            + (options.getTop() > 0 ? " FETCH " + (options.getSkip() > 0 ? "NEXT " : "FIRST ") + options.getTop() + " ROWS ONLY" : "");
+            + (options.getTop() > 0
+                ? " FETCH " + (options.getSkip() > 0 ? "NEXT " : "FIRST ") + options.getTop()
+                    + " ROWS ONLY"
+                : "");
         LOGGER.finest("Search using statement: " + selectQuery);
 
         // Execute the statement
@@ -475,7 +487,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
             // if a vector was provided for similarity search set the value of the vector
             if (vector != null) {
                 float[] arrayVector = new float[vector.size()];
-                for (int i = 0; i < vector.size(); i++){
+                for (int i = 0; i < vector.size(); i++) {
                     arrayVector[i] = vector.get(i).floatValue();
                 }
                 statement.setObject(parameterIndex++, arrayVector, OracleTypes.VECTOR_FLOAT32);
@@ -483,7 +495,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
             // set all parameters.
             for (Object parameter : parameters) {
                 if (parameter != null) {
-                    setSearchParameter(statement, parameterIndex++, parameter.getClass(), parameter);
+                    setSearchParameter(statement, parameterIndex++, parameter.getClass(),
+                        parameter);
                 }
             }
 
@@ -508,19 +521,22 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
             // Execute the statement and get the results
             try (ResultSet rs = statement.executeQuery()) {
-                GetRecordOptions getRecordOptions = new GetRecordOptions(options.isIncludeVectors());
+                GetRecordOptions getRecordOptions = new GetRecordOptions(
+                    options.isIncludeVectors());
                 while (rs.next()) {
                     // Cosine distance function. 1 - cosine similarity.
                     double score = Math.abs(rs.getDouble("distance"));
-                    if (vector != null && vectorField.getDistanceFunction() == DistanceFunction.COSINE_SIMILARITY) {
+                    if (vector != null && vectorField
+                        .getDistanceFunction() == DistanceFunction.COSINE_SIMILARITY) {
                         score = 1d - score;
                     }
                     // Use the mapper to convert to result set to records
-                    records.add(new VectorSearchResult<>(mapper.mapStorageModelToRecord(rs, getRecordOptions), score));
+                    records.add(new VectorSearchResult<>(
+                        mapper.mapStorageModelToRecord(rs, getRecordOptions), score));
                 }
             }
         } catch (SQLException e) {
-            throw  new SKException("Search failed", e);
+            throw new SKException("Search failed", e);
         }
 
         return new VectorSearchResults<>(records);
@@ -544,7 +560,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
             }
             vectorField = recordDefinition.getVectorFields().get(0);
         }
-        return (VectorStoreRecordVectorField)vectorField;
+        return (VectorStoreRecordVectorField) vectorField;
     }
 
     /**
@@ -554,7 +570,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
      * @param type the parameter type
      * @param value the value
      */
-    private void setSearchParameter(PreparedStatement statement, int index, Class<?> type, Object value) {
+    private void setSearchParameter(PreparedStatement statement, int index, Class<?> type,
+        Object value) {
 
         try {
             // Use JSON string to set lists
@@ -598,7 +615,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         }
     }
 
-
     /**
      * Defines the type that will be used to retrieve data from a given database table column.
      * @param columnIndex the index of the column
@@ -606,7 +622,8 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
      * @param fieldType the java field type
      * @throws SQLException if an error occurs while defining the column type
      */
-    private void defineDataColumnType(int columnIndex, OracleStatement statement, Class<?> fieldType) throws SQLException {
+    private void defineDataColumnType(int columnIndex, OracleStatement statement,
+        Class<?> fieldType) throws SQLException {
         // switch between supported classes and define the column type on the statement
         switch (supportedDataTypes.get(fieldType)) {
             case OracleDataTypesMapping.STRING_CLOB:
@@ -723,7 +740,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
     @Override
     public String getAnyTagEqualToFilter(AnyTagEqualToFilterClause filterClause) {
         String fieldName = JDBCVectorStoreQueryProvider
-                .validateSQLidentifier(filterClause.getFieldName());
+            .validateSQLidentifier(filterClause.getFieldName());
 
         return String.format("JSON_EXISTS(%s, '$[*]?(@ == $v_%s)' PASSING ? AS \"v_%s\")",
             fieldName, fieldName, fieldName);
@@ -791,7 +808,6 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          */
         private int defaultVarcharSize = 2000;
 
-
         @SuppressFBWarnings("EI_EXPOSE_REP2")
         public Builder withDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
@@ -836,7 +852,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          *                          {@link StringTypeMapping#USE_VARCHAR}
          * @return the builder
          */
-        public Builder withStringTypeMapping (StringTypeMapping stringTypeMapping) {
+        public Builder withStringTypeMapping(StringTypeMapping stringTypeMapping) {
             this.stringTypeMapping = stringTypeMapping;
             return this;
         }
@@ -847,7 +863,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          *                           is 2000.
          * @return then builder
          */
-        public Builder withDefaultVarcharSize (int defaultVarcharSize) {
+        public Builder withDefaultVarcharSize(int defaultVarcharSize) {
             this.defaultVarcharSize = defaultVarcharSize;
             return this;
         }
@@ -863,4 +879,3 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
         }
     }
 }
-

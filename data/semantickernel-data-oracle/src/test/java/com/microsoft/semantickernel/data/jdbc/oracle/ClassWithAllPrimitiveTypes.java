@@ -80,14 +80,15 @@ public class ClassWithAllPrimitiveTypes {
     @VectorStoreRecordVector(dimensions = 8, distanceFunction = DistanceFunction.COSINE_DISTANCE, indexKind = IndexKind.IVFFLAT)
     private final float[] vectorValue;
 
-
     public ClassWithAllPrimitiveTypes() {
-        this(null, false, Byte.MIN_VALUE,Short.MIN_VALUE, 0, 0l, 0f, 0d, null, null, null, null, null, null);
+        this(null, false, Byte.MIN_VALUE, Short.MIN_VALUE, 0, 0l, 0f, 0d, null, null, null, null,
+            null, null);
     };
+
     public ClassWithAllPrimitiveTypes(String id, boolean booleanValue, byte byteValue,
-                                    short shortValue, int integerValue, long longValue, float floatValue, double doubleValue,
-                                    BigDecimal decimalValue, OffsetDateTime offsetDateTimeValue, UUID uuidValue,
-                                    byte[] byteArrayValue, List<Float> listOfFloatValue, float[] vectorValue) {
+        short shortValue, int integerValue, long longValue, float floatValue, double doubleValue,
+        BigDecimal decimalValue, OffsetDateTime offsetDateTimeValue, UUID uuidValue,
+        byte[] byteArrayValue, List<Float> listOfFloatValue, float[] vectorValue) {
         this.id = id;
         this.booleanValue = booleanValue;
         this.byteValue = byteValue;
@@ -135,7 +136,6 @@ public class ClassWithAllPrimitiveTypes {
     public double getDoubleValue() {
         return doubleValue;
     }
-
 
     public BigDecimal getDecimalValue() {
         return decimalValue;

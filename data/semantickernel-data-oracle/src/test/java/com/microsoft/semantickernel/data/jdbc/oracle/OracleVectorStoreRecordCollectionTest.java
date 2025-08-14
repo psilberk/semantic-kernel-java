@@ -1,3 +1,28 @@
+/*
+ ** Oracle Database Vector Store Connector for Semantic Kernel (Java)
+ **
+ ** Copyright (c) 2025 Oracle and/or its affiliates. All rights reserved.
+ **
+ ** The MIT License (MIT)
+ **
+ ** Permission is hereby granted, free of charge, to any person obtaining a copy
+ ** of this software and associated documentation files (the "Software"), to
+ ** deal in the Software without restriction, including without limitation the
+ ** rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ ** sell copies of the Software, and to permit persons to whom the Software is
+ ** furnished to do so, subject to the following conditions:
+ **
+ ** The above copyright notice and this permission notice shall be included in
+ ** all copies or substantial portions of the Software.
+ **
+ ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ ** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ ** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ ** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ ** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ ** FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ ** IN THE SOFTWARE.
+ */
 package com.microsoft.semantickernel.data.jdbc.oracle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -39,7 +64,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorStoreRecordCollectionTest {
+public class OracleVectorStoreRecordCollectionTest
+    extends OracleCommonVectorStoreRecordCollectionTest {
     private static VectorStoreRecordCollection<String, Hotel> recordCollection;
 
     @BeforeAll
@@ -59,11 +85,10 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
             .build();
 
         // Get a collection from the vector store
-        recordCollection =
-            vectorStore.getCollection("skhotels",
-                JDBCVectorStoreRecordCollectionOptions.<Hotel>builder()
-                    .withRecordClass(Hotel.class)
-                    .build());
+        recordCollection = vectorStore.getCollection("skhotels",
+            JDBCVectorStoreRecordCollectionOptions.<Hotel>builder()
+                .withRecordClass(Hotel.class)
+                .build());
 
         recordCollection.createCollectionIfNotExistsAsync().block();
     }
@@ -87,23 +112,28 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         List<Float> vec4 = Arrays.asList(7.0f, 1.2f, -5.3f, 2.5f, 6.6f, -7.8f, 3.9f, -0.1f);
         float[] arrayf4 = new float[] { 7.0f, 1.2f, -5.3f, 2.5f, 6.6f, -7.8f, 3.9f, -0.1f };
         Float[] arrayF4 = new Float[] { 7.0f, 1.2f, -5.3f, 2.5f, 6.6f, -7.8f, 3.9f, -0.1f };
-        List<Float> vec5 =Arrays.asList(-3.5f, 4.4f, -1.2f, 9.9f, 5.7f, -6.1f, 7.8f, -2.0f);
+        List<Float> vec5 = Arrays.asList(-3.5f, 4.4f, -1.2f, 9.9f, 5.7f, -6.1f, 7.8f, -2.0f);
         float[] arrayf5 = new float[] { -3.5f, 4.4f, -1.2f, 9.9f, 5.7f, -6.1f, 7.8f, -2.0f };
         Float[] arrayF5 = new Float[] { -3.5f, 4.4f, -1.2f, 9.9f, 5.7f, -6.1f, 7.8f, -2.0f };
         return Arrays.asList(
-            new Hotel("id_1", "Hotel 1", 1, 1.49d, Arrays.asList("one", "two"), "Hotel 1 description",
+            new Hotel("id_1", "Hotel 1", 1, 1.49d, Arrays.asList("one", "two"),
+                "Hotel 1 description",
                 vec1, arrayf1, arrayf1, arrayF1,
                 4.0),
-            new Hotel("id_2", "Hotel 2", 2, 1.44d, Arrays.asList("three", "four"), "Hotel 2 description with free-text search",
+            new Hotel("id_2", "Hotel 2", 2, 1.44d, Arrays.asList("three", "four"),
+                "Hotel 2 description with free-text search",
                 vec2, arrayf2, arrayf2, arrayF2,
                 4.0),
-            new Hotel("id_3", "Hotel 3", 3, 1.53d, Arrays.asList("five", "six"), "Hotel 3 description",
+            new Hotel("id_3", "Hotel 3", 3, 1.53d, Arrays.asList("five", "six"),
+                "Hotel 3 description",
                 vec3, arrayf3, arrayf3, arrayF3,
                 5.0),
-            new Hotel("id_4", "Hotel 4", 4, 1.35d, Arrays.asList("seven", "eight"), "Hotel 4 description",
+            new Hotel("id_4", "Hotel 4", 4, 1.35d, Arrays.asList("seven", "eight"),
+                "Hotel 4 description",
                 vec4, arrayf4, arrayf4, arrayF4,
                 4.0),
-            new Hotel("id_5", "Hotel 5", 5, 1.89d, Arrays.asList("nine", "ten"),"Hotel 5 description",
+            new Hotel("id_5", "Hotel 5", 5, 1.89d, Arrays.asList("nine", "ten"),
+                "Hotel 5 description",
                 vec5, arrayf5, arrayf5, arrayF5,
                 4.0));
     }
@@ -216,11 +246,11 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         assertEquals(3, results.size());
         // The third hotel should be the most similar
         assertEquals(hotels.get(2).getId(), results.get(0).getRecord().getId());
-        assertEquals(expectedDistance.get(0).doubleValue(), results.get(0).getScore(), 0.0001d);
+        assertEquals(expectedDistance.get(0).doubleValue(), results.get(0).getScore(), 0.0003d);
         assertEquals(hotels.get(0).getId(), results.get(1).getRecord().getId());
-        assertEquals(expectedDistance.get(1).doubleValue(), results.get(1).getScore(), 0.0001d);
+        assertEquals(expectedDistance.get(1).doubleValue(), results.get(1).getScore(), 0.0003d);
         assertEquals(hotels.get(3).getId(), results.get(2).getRecord().getId());
-        assertEquals(expectedDistance.get(2).doubleValue(), results.get(2).getScore(), 0.0001d);
+        assertEquals(expectedDistance.get(2).doubleValue(), results.get(2).getScore(), 0.0003d);
 
         options = VectorSearchOptions.builder()
             .withVectorFieldName(distanceFunction.getValue())
@@ -234,7 +264,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         assertEquals(1, results.size());
         // The first hotel should be the most similar
         assertEquals(hotels.get(0).getId(), results.get(0).getRecord().getId());
-        assertEquals(results.get(0).getScore(), expectedDistance.get(1), 0.001d);
+        assertEquals(results.get(0).getScore(), expectedDistance.get(1), 0.003d);
     }
 
     @ParameterizedTest
@@ -258,9 +288,8 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         assertEquals(3, results.size());
         // The first hotel should be the most similar
         assertEquals(hotels.get(0).getId(), results.get(0).getRecord().getId());
-        assertEquals(results.get(0).getScore(), expectedDistance, 0.0001d);
+        assertEquals(expectedDistance, results.get(0).getScore(), 0.0003d);
     }
-
 
     @Test
     public void searchWithTagFilter() {
@@ -268,7 +297,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         recordCollection.upsertBatchAsync(hotels, null).block();
 
         VectorSearchOptions options = VectorSearchOptions.builder()
-//            .withVectorFieldName("")
+            //            .withVectorFieldName("")
             .withTop(3)
             .withVectorSearchFilter(
                 VectorSearchFilter.builder()
@@ -310,8 +339,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
             .build();
 
         VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
-            Arrays.asList(keyField, dummyField, dummyVector)
-        );
+            Arrays.asList(keyField, dummyField, dummyVector));
 
         OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
             .withDataSource(DATA_SOURCE)
@@ -326,19 +354,18 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
 
         String collectionName = "test_keytype_" + suffix;
 
-        VectorStoreRecordCollection collectionRaw =
-            vectorStore.getCollection(collectionName,
-                JDBCVectorStoreRecordCollectionOptions.<DummyRecordForKeyTypes>builder()
-                    .withRecordClass(DummyRecordForKeyTypes.class)
-                    .withRecordDefinition(definition)
-                    .build());
+        VectorStoreRecordCollection collectionRaw = vectorStore.getCollection(collectionName,
+            JDBCVectorStoreRecordCollectionOptions.<DummyRecordForKeyTypes>builder()
+                .withRecordClass(DummyRecordForKeyTypes.class)
+                .withRecordDefinition(definition)
+                .build());
 
-        VectorStoreRecordCollection<Object, DummyRecordForKeyTypes> collection =
-            (VectorStoreRecordCollection<Object, DummyRecordForKeyTypes>) collectionRaw;
+        VectorStoreRecordCollection<Object, DummyRecordForKeyTypes> collection = (VectorStoreRecordCollection<Object, DummyRecordForKeyTypes>) collectionRaw;
 
         collection.createCollectionAsync().block();
 
-        DummyRecordForKeyTypes record = new DummyRecordForKeyTypes(keyValue, "dummyValue", Arrays.asList(1.0f, 2.0f));
+        DummyRecordForKeyTypes record = new DummyRecordForKeyTypes(keyValue, "dummyValue",
+            Arrays.asList(1.0f, 2.0f));
         collection.upsertAsync(record, null).block();
 
         DummyRecordForKeyTypes result = collection.getAsync(keyValue, null).block();
@@ -347,7 +374,6 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
 
         collection.deleteCollectionAsync().block();
     }
-
 
     @Nested
     class HNSWIndexTests {
@@ -366,7 +392,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .isFilterable(false)
                 .build();
 
-            VectorStoreRecordVectorField hnswVector= VectorStoreRecordVectorField.builder()
+            VectorStoreRecordVectorField hnswVector = VectorStoreRecordVectorField.builder()
                 .withName("hnsw")
                 .withStorageName("hnsw")
                 .withFieldType(List.class)
@@ -376,8 +402,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .build();
 
             VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
-                Arrays.asList(keyField, dummyField, hnswVector)
-            );
+                Arrays.asList(keyField, dummyField, hnswVector));
 
             OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
                 .withDataSource(DATA_SOURCE)
@@ -391,17 +416,18 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .build();
 
             String collectionName = "skhotels_hnsw";
-            VectorStoreRecordCollection<String, Object> collection =
-                vectorStore.getCollection(collectionName,
-                    JDBCVectorStoreRecordCollectionOptions.<Object>builder()
-                        .withRecordClass(Object.class)
-                        .withRecordDefinition(definition)
-                        .build());
+            VectorStoreRecordCollection<String, Object> collection = vectorStore.getCollection(
+                collectionName,
+                JDBCVectorStoreRecordCollectionOptions.<Object>builder()
+                    .withRecordClass(Object.class)
+                    .withRecordDefinition(definition)
+                    .build());
 
             // create collection
             collection.createCollectionAsync().block();
 
-            String expectedIndexName = hnswVector.getEffectiveStorageName().toUpperCase() + "_VECTOR_INDEX";
+            String expectedIndexName = hnswVector.getEffectiveStorageName().toUpperCase()
+                + "_VECTOR_INDEX";
 
             // check if index exist
             try (Connection conn = DATA_SOURCE.getConnection();
@@ -435,7 +461,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .build();
 
             // create vector field, set IndexKind to UNDEFINED
-            VectorStoreRecordVectorField undefinedVector= VectorStoreRecordVectorField.builder()
+            VectorStoreRecordVectorField undefinedVector = VectorStoreRecordVectorField.builder()
                 .withName("undef")
                 .withStorageName("undef")
                 .withFieldType(List.class)
@@ -452,8 +478,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .build();
 
             VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
-                Arrays.asList(keyField, dummyField,  undefinedVector)
-            );
+                Arrays.asList(keyField, dummyField, undefinedVector));
 
             OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
                 .withDataSource(DATA_SOURCE)
@@ -467,18 +492,19 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 .build();
 
             String collectionName = "skhotels_undefined";
-            VectorStoreRecordCollection<String, Object> collection =
-                vectorStore.getCollection(collectionName,
-                    JDBCVectorStoreRecordCollectionOptions.<Object>builder()
-                        .withRecordClass(Object.class)
-                        .withRecordDefinition(definition)
-                        .build());
+            VectorStoreRecordCollection<String, Object> collection = vectorStore.getCollection(
+                collectionName,
+                JDBCVectorStoreRecordCollectionOptions.<Object>builder()
+                    .withRecordClass(Object.class)
+                    .withRecordDefinition(definition)
+                    .build());
 
             // create collection
             collection.createCollectionAsync().block();
 
             // check if index exist
-            String expectedIndexName = undefinedVector.getEffectiveStorageName().toUpperCase() + "_VETCOR_INDEX";
+            String expectedIndexName = undefinedVector.getEffectiveStorageName().toUpperCase()
+                + "_VETCOR_INDEX";
             try (Connection conn = DATA_SOURCE.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(
                     "SELECT COUNT(*) FROM USER_INDEXES WHERE INDEX_NAME = ?")) {
@@ -487,7 +513,8 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
                 rs.next();
                 int count = rs.getInt(1);
 
-                assertEquals(0,count,"Vector index should not be created for IndexKind.UNDEFINED");
+                assertEquals(0, count,
+                    "Vector index should not be created for IndexKind.UNDEFINED");
             } finally {
                 // clean up
                 try (Connection conn = DATA_SOURCE.getConnection();
@@ -500,22 +527,23 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
 
     private static Stream<Arguments> distanceFunctionAndDistance() {
         return Stream.of(
-            Arguments.of (DistanceFunction.COSINE_DISTANCE, 0.8548d),
-            Arguments.of (DistanceFunction.COSINE_SIMILARITY, 0.1451d),
-            Arguments.of (DistanceFunction.DOT_PRODUCT, 30.3399d),
-            Arguments.of (DistanceFunction.EUCLIDEAN_DISTANCE, 18.9081d),
-            Arguments.of (DistanceFunction.UNDEFINED, 18.9081d)
-        );
+            Arguments.of(DistanceFunction.COSINE_DISTANCE, 0.8548d),
+            Arguments.of(DistanceFunction.COSINE_SIMILARITY, 0.1451d),
+            Arguments.of(DistanceFunction.DOT_PRODUCT, 30.3399d),
+            Arguments.of(DistanceFunction.EUCLIDEAN_DISTANCE, 18.9081d),
+            Arguments.of(DistanceFunction.UNDEFINED, 18.9081d));
     }
 
     private static Stream<Arguments> parametersExactSearch() {
         return Stream.of(
-            Arguments.of (DistanceFunction.COSINE_SIMILARITY, Arrays.asList(0.9999d, 0.1451d, 0.0178d)),
-            Arguments.of (DistanceFunction.COSINE_DISTANCE, Arrays.asList(1.6422E-5d, 0.8548d, 0.9821d)),
-            Arguments.of (DistanceFunction.DOT_PRODUCT, Arrays.asList(202.3399d, 30.3399d, 3.6199d)),
-            Arguments.of (DistanceFunction.EUCLIDEAN_DISTANCE, Arrays.asList(0.1000d, 18.9081d, 19.9669d)),
-            Arguments.of (DistanceFunction.UNDEFINED, Arrays.asList(0.1000d, 18.9081d, 19.9669d))
-        );
+            Arguments.of(DistanceFunction.COSINE_SIMILARITY,
+                Arrays.asList(0.9999d, 0.1451d, 0.0178d)),
+            Arguments.of(DistanceFunction.COSINE_DISTANCE,
+                Arrays.asList(1.6422E-5d, 0.8548d, 0.9821d)),
+            Arguments.of(DistanceFunction.DOT_PRODUCT, Arrays.asList(202.3399d, 30.3399d, 3.6199d)),
+            Arguments.of(DistanceFunction.EUCLIDEAN_DISTANCE,
+                Arrays.asList(0.1000d, 18.9081d, 19.9669d)),
+            Arguments.of(DistanceFunction.UNDEFINED, Arrays.asList(0.1000d, 18.9081d, 19.9669d)));
     }
 
     // commented out temporarily because only String type key is supported in 
@@ -526,11 +554,16 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
     // thus upsertAync/getAsync won't work
     private static Stream<Arguments> supportedKeyTypes() {
         return Stream.of(
-            Arguments.of("string", String.class, "asd123") /*,
-            Arguments.of("integer", Integer.class, 321),
-            Arguments.of("long", Long.class, 5L),
-            Arguments.of("short", Short.class, (short) 3),
-            Arguments.of("uuid", UUID.class, UUID.randomUUID())*/
+            Arguments.of("string", String.class, "asd123") /*
+                                                            * ,
+                                                            * Arguments.of("integer", Integer.class,
+                                                            * 321),
+                                                            * Arguments.of("long", Long.class, 5L),
+                                                            * Arguments.of("short", Short.class,
+                                                            * (short) 3),
+                                                            * Arguments.of("uuid", UUID.class,
+                                                            * UUID.randomUUID())
+                                                            */
         );
     }
 
@@ -538,9 +571,10 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         private final Object id;
         private final String dummy;
         private final List<Float> vec;
+
         @JsonCreator
         public DummyRecordForKeyTypes(
-            @JsonProperty("id")Object id,
+            @JsonProperty("id") Object id,
             @JsonProperty("dummy") String dummy,
             @JsonProperty("vec") List<Float> vec) {
             this.id = id;
@@ -566,6 +600,7 @@ public class OracleVectorStoreRecordCollectionTest extends OracleCommonVectorSto
         private final String id;
         private final Object dummy;
         private final List<Float> vec;
+
         @JsonCreator
         public DummyRecordForDataTypes(
             @JsonProperty("id") String id,

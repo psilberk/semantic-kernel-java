@@ -44,30 +44,30 @@ public class ClassWithAnnotatedTypes {
     private final String valueType;
 
     @JsonProperty("value_field")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.EXTERNAL_PROPERTY , property = "value_type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.EXTERNAL_PROPERTY, property = "value_type")
     @JsonSubTypes({
-        @JsonSubTypes.Type(value = String.class, name="string"),
-        @JsonSubTypes.Type(value = Boolean.class, name="boolean"),
-        @JsonSubTypes.Type(value = Byte.class, name="byte"),
-        @JsonSubTypes.Type(value = Short.class, name="short"),
-        @JsonSubTypes.Type(value = Integer.class, name="integer"),
-        @JsonSubTypes.Type(value = Long.class, name="long"),
-        @JsonSubTypes.Type(value = Float.class, name="float"),
-        @JsonSubTypes.Type(value = Double.class, name="double"),
-        @JsonSubTypes.Type(value = BigDecimal.class, name="decimal"),
-        @JsonSubTypes.Type(value = OffsetDateTime.class, name="timestamp"),
-        @JsonSubTypes.Type(value = UUID.class, name="uuid"),
-        @JsonSubTypes.Type(value = byte[].class, name="byte_array"),
-        @JsonSubTypes.Type(value = List.class, name="json")
+            @JsonSubTypes.Type(value = String.class, name = "string"),
+            @JsonSubTypes.Type(value = Boolean.class, name = "boolean"),
+            @JsonSubTypes.Type(value = Byte.class, name = "byte"),
+            @JsonSubTypes.Type(value = Short.class, name = "short"),
+            @JsonSubTypes.Type(value = Integer.class, name = "integer"),
+            @JsonSubTypes.Type(value = Long.class, name = "long"),
+            @JsonSubTypes.Type(value = Float.class, name = "float"),
+            @JsonSubTypes.Type(value = Double.class, name = "double"),
+            @JsonSubTypes.Type(value = BigDecimal.class, name = "decimal"),
+            @JsonSubTypes.Type(value = OffsetDateTime.class, name = "timestamp"),
+            @JsonSubTypes.Type(value = UUID.class, name = "uuid"),
+            @JsonSubTypes.Type(value = byte[].class, name = "byte_array"),
+            @JsonSubTypes.Type(value = List.class, name = "json")
     })
     private Object value;
 
     private final Float[] vectorValue;
 
-
     public ClassWithAnnotatedTypes() {
         this(null, null, null, null);
     };
+
     public ClassWithAnnotatedTypes(String id, String valueType, Object value, Float[] vectorValue) {
         this.id = id;
         this.valueType = valueType;
@@ -79,7 +79,9 @@ public class ClassWithAnnotatedTypes {
         return id;
     }
 
-    public String getValueType() { return valueType; }
+    public String getValueType() {
+        return valueType;
+    }
 
     public Object getValue() {
         return value;

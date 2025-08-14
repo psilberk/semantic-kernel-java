@@ -79,12 +79,14 @@ public class ClassWithAllBoxedTypes {
     @VectorStoreRecordVector(dimensions = 8, distanceFunction = DistanceFunction.COSINE_DISTANCE, indexKind = IndexKind.IVFFLAT)
     private final Float[] vectorValue;
 
-
     public ClassWithAllBoxedTypes() {
-        this(null, false, Byte.MIN_VALUE,Short.MIN_VALUE, 0, 0l, 0f, 0d, null, null, null, null, null, null);
+        this(null, false, Byte.MIN_VALUE, Short.MIN_VALUE, 0, 0l, 0f, 0d, null, null, null, null,
+            null, null);
     };
+
     public ClassWithAllBoxedTypes(String id, Boolean booleanValue, Byte byteValue,
-        Short shortValue, Integer integerValue, Long longValue, Float floatValue, Double doubleValue,
+        Short shortValue, Integer integerValue, Long longValue, Float floatValue,
+        Double doubleValue,
         BigDecimal decimalValue, OffsetDateTime offsetDateTimeValue, UUID uuidValue,
         byte[] byteArrayValue, List<Float> listOfFloatValue, Float[] vectorValue) {
         this.id = id;
@@ -134,7 +136,6 @@ public class ClassWithAllBoxedTypes {
     public Double getDoubleValue() {
         return doubleValue;
     }
-
 
     public BigDecimal getDecimalValue() {
         return decimalValue;

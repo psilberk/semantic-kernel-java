@@ -65,11 +65,12 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                 .build())
             .build();
 
-        VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> collection =
-            vectorStore.getCollection("BoxedTypes",
+        VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> collection = vectorStore
+            .getCollection("BoxedTypes",
                 JDBCVectorStoreRecordCollectionOptions.<ClassWithAllBoxedTypes>builder()
                     .withRecordClass(ClassWithAllBoxedTypes.class)
-                    .build()).createCollectionAsync().block();
+                    .build())
+            .createCollectionAsync().block();
 
         collection.createCollectionAsync().block();
 
@@ -114,11 +115,12 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                 .build())
             .build();
 
-        VectorStoreRecordCollection<String, ClassWithAllPrimitiveTypes> collection =
-            vectorStore.getCollection("PrimitiveTypes",
+        VectorStoreRecordCollection<String, ClassWithAllPrimitiveTypes> collection = vectorStore
+            .getCollection("PrimitiveTypes",
                 JDBCVectorStoreRecordCollectionOptions.<ClassWithAllPrimitiveTypes>builder()
                     .withRecordClass(ClassWithAllPrimitiveTypes.class)
-                    .build()).createCollectionAsync().block();
+                    .build())
+            .createCollectionAsync().block();
 
         collection.createCollectionAsync().block();
 
@@ -148,46 +150,40 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         collection.deleteCollectionAsync().block();
     }
 
-
     private static Stream<Arguments> supportedDataTypes() {
         return Stream.of(
             Arguments.of(
                 new ClassWithAllBoxedTypes(
-                        "ID1", true, (byte) 127, (short) 3, 321, 5L,
-                        3.14f, 3.14159265358d, new BigDecimal("12345.67"),
-                        OffsetDateTime.now(), UUID.randomUUID(), "abc".getBytes(StandardCharsets.UTF_8),
-                        Arrays.asList(1.0f, 2.6f),
-                        new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    "ID1", true, (byte) 127, (short) 3, 321, 5L,
+                    3.14f, 3.14159265358d, new BigDecimal("12345.67"),
+                    OffsetDateTime.now(), UUID.randomUUID(), "abc".getBytes(StandardCharsets.UTF_8),
+                    Arrays.asList(1.0f, 2.6f),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
-                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE,
+                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE,
+                    Long.MIN_VALUE,
                     Float.MIN_VALUE, MIN_NUMBER, BigDecimal.valueOf(MIN_NUMBER),
-                    OffsetDateTime.now(), UUID.randomUUID(), new byte[] {Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE},
+                    OffsetDateTime.now(), UUID.randomUUID(),
+                    new byte[] { Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE },
                     Arrays.asList(Float.MIN_VALUE, -10f, 0f, 10f, Float.MAX_VALUE),
-                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
-                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE,
-                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(), BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
+                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE,
+                    Long.MAX_VALUE,
+                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(),
+                    BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
                     OffsetDateTime.now(), UUID.randomUUID(), null,
                     null,
-                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
                     "ID3", null, null, null, null, null,
                     null, null, null,
                     null, null, null,
                     null,
-                    null
-                )
-            )
-        );
+                    null)));
     }
 
     private static Stream<Arguments> supportedDataPrimitiveTypes() {
@@ -198,37 +194,32 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                     3.14f, 3.14159265358d, new BigDecimal("12345.67"),
                     OffsetDateTime.now(), UUID.randomUUID(), "abc".getBytes(StandardCharsets.UTF_8),
                     Arrays.asList(1.0f, 2.6f),
-                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
-                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE,
+                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE,
+                    Long.MIN_VALUE,
                     Float.MIN_VALUE, MIN_NUMBER, BigDecimal.valueOf(MIN_NUMBER),
-                    OffsetDateTime.now(), UUID.randomUUID(), new byte[] {Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE},
+                    OffsetDateTime.now(), UUID.randomUUID(),
+                    new byte[] { Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE },
                     Arrays.asList(Float.MIN_VALUE, -10f, 0f, 10f, Float.MAX_VALUE),
-                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
-                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE,
-                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(), BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
+                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE,
+                    Long.MAX_VALUE,
+                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(),
+                    BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
                     OffsetDateTime.now(), UUID.randomUUID(), null,
                     null,
-                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
-                    "ID3", false, (byte)0, (short)0, 0, 0l,
+                    "ID3", false, (byte) 0, (short) 0, 0, 0l,
                     0f, 0d, null,
                     null, null, null,
                     null,
-                    null
-                )
-            )
-        );
+                    null)));
     }
 
 }

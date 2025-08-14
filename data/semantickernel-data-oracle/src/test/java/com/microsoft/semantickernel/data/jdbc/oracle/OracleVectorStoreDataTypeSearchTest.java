@@ -46,16 +46,15 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStoreRecordCollectionTest {
+public class OracleVectorStoreDataTypeSearchTest
+    extends OracleCommonVectorStoreRecordCollectionTest {
     private static final double MIN_DOUBLE = 1.0E-130;
     private static final double MIN_DECIMAL = -1.0E125;
     private static final BigDecimal BIG_NUMBER = BigDecimal.valueOf(9999999999999999.99);
 
-
-
     @ParameterizedTest
     @MethodSource("supportedDataTypes")
-    void testDataTypesSearch (ClassWithAllBoxedTypes record) {
+    void testDataTypesSearch(ClassWithAllBoxedTypes record) {
         VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> collection = setupBoxed();
 
         collection.upsertAsync(record, null).block();
@@ -66,11 +65,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                    .equalTo("booleanValue", record.getBooleanValue()).build()
-        ).build()).block();
+                        .equalTo("booleanValue", record.getBooleanValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertEquals(record.getBooleanValue(), results.getResults().get(0).getRecord().getBooleanValue());
+        assertEquals(record.getBooleanValue(),
+            results.getResults().get(0).getRecord().getBooleanValue());
 
         // byte
         results = collection.searchAsync(
@@ -78,8 +79,9 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("byteValue", record.getByteValue()).build()
-                ).build()).block();
+                        .equalTo("byteValue", record.getByteValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
         assertEquals(record.getByteValue(), results.getResults().get(0).getRecord().getByteValue());
@@ -90,11 +92,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("shortValue", record.getShortValue()).build()
-                ).build()).block();
+                        .equalTo("shortValue", record.getShortValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertEquals(record.getShortValue(), results.getResults().get(0).getRecord().getShortValue());
+        assertEquals(record.getShortValue(),
+            results.getResults().get(0).getRecord().getShortValue());
 
         // integer
         results = collection.searchAsync(
@@ -102,11 +106,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("integerValue", record.getIntegerValue()).build()
-                ).build()).block();
+                        .equalTo("integerValue", record.getIntegerValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertEquals(record.getIntegerValue(), results.getResults().get(0).getRecord().getIntegerValue());
+        assertEquals(record.getIntegerValue(),
+            results.getResults().get(0).getRecord().getIntegerValue());
 
         // long
         results = collection.searchAsync(
@@ -114,8 +120,9 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("longValue", record.getLongValue()).build()
-                ).build()).block();
+                        .equalTo("longValue", record.getLongValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
         assertEquals(record.getLongValue(), results.getResults().get(0).getRecord().getLongValue());
@@ -126,11 +133,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("floatValue", record.getFloatValue()).build()
-                ).build()).block();
+                        .equalTo("floatValue", record.getFloatValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertEquals(record.getFloatValue(), results.getResults().get(0).getRecord().getFloatValue());
+        assertEquals(record.getFloatValue(),
+            results.getResults().get(0).getRecord().getFloatValue());
 
         // double
         results = collection.searchAsync(
@@ -138,11 +147,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("doubleValue", record.getDoubleValue()).build()
-                ).build()).block();
+                        .equalTo("doubleValue", record.getDoubleValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertEquals(record.getDoubleValue(), results.getResults().get(0).getRecord().getDoubleValue());
+        assertEquals(record.getDoubleValue(),
+            results.getResults().get(0).getRecord().getDoubleValue());
 
         // decimal
         results = collection.searchAsync(
@@ -150,8 +161,9 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("decimalValue", record.getDecimalValue()).build()
-                ).build()).block();
+                        .equalTo("decimalValue", record.getDecimalValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
         if (record.getDecimalValue() != null) {
@@ -168,8 +180,9 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("offsetDateTimeValue", record.getOffsetDateTimeValue()).build()
-                ).build()).block();
+                        .equalTo("offsetDateTimeValue", record.getOffsetDateTimeValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
         if (record.getOffsetDateTimeValue() != null) {
@@ -186,8 +199,9 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("uuidValue", record.getUuidValue()).build()
-                ).build()).block();
+                        .equalTo("uuidValue", record.getUuidValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
         assertEquals(record.getUuidValue(), results.getResults().get(0).getRecord().getUuidValue());
@@ -198,16 +212,17 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
             VectorSearchOptions.builder()
                 .withVectorSearchFilter(
                     VectorSearchFilter.builder()
-                        .equalTo("byteArrayValue", record.getByteArrayValue()).build()
-                ).build()).block();
+                        .equalTo("byteArrayValue", record.getByteArrayValue()).build())
+                .build())
+            .block();
 
         assertEquals(1, results.getTotalCount());
-        assertArrayEquals(record.getByteArrayValue(), results.getResults().get(0).getRecord().getByteArrayValue());
+        assertArrayEquals(record.getByteArrayValue(),
+            results.getResults().get(0).getRecord().getByteArrayValue());
 
         collection.deleteCollectionAsync().block();
 
     }
-
 
     public VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> setupBoxed() {
         OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
@@ -221,17 +236,17 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
                 .build())
             .build();
 
-        VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> collection =
-            vectorStore.getCollection("BoxedTypes",
+        VectorStoreRecordCollection<String, ClassWithAllBoxedTypes> collection = vectorStore
+            .getCollection("BoxedTypes",
                 JDBCVectorStoreRecordCollectionOptions.<ClassWithAllBoxedTypes>builder()
                     .withRecordClass(ClassWithAllBoxedTypes.class)
-                    .build()).createCollectionAsync().block();
+                    .build())
+            .createCollectionAsync().block();
 
         collection.createCollectionAsync().block();
 
         return collection;
     }
-
 
     private static Stream<Arguments> supportedDataTypes() {
         return Stream.of(
@@ -241,37 +256,32 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
                     3.14f, 3.14159265358d, new BigDecimal("12345.67"),
                     OffsetDateTime.now(), UUID.randomUUID(), "abc".getBytes(StandardCharsets.UTF_8),
                     Arrays.asList(1.0f, 2.6f),
-                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
-                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE,
+                    "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE,
+                    Long.MIN_VALUE,
                     Float.MIN_VALUE, MIN_DOUBLE, BigDecimal.valueOf(MIN_DECIMAL),
-                    OffsetDateTime.now(), UUID.randomUUID(), new byte[] {Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE},
+                    OffsetDateTime.now(), UUID.randomUUID(),
+                    new byte[] { Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE },
                     Arrays.asList(Float.MIN_VALUE, -10f, 0f, 10f, Float.MAX_VALUE),
-                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
-                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE,
-                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(), BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
+                    "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE,
+                    Long.MAX_VALUE,
+                    Float.MAX_VALUE, BIG_NUMBER.doubleValue(),
+                    BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
                     OffsetDateTime.now(), UUID.randomUUID(), null,
                     null,
-                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f }
-                )
-            ),
+                    new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllBoxedTypes(
                     "ID3", null, null, null, null, null,
                     null, null, null,
                     null, null, null,
                     null,
-                    null
-                )
-            )
-        );
+                    null)));
     }
 
     private static Stream<Arguments> supportedDataPrimitiveTypes() {
@@ -282,20 +292,16 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
                     3.14f, 3.14159265358d, new BigDecimal("12345.67"),
                     OffsetDateTime.now(), UUID.randomUUID(), "abc".getBytes(StandardCharsets.UTF_8),
                     Arrays.asList(1.0f, 2.6f),
-                    new float[]{0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f}
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
                     "ID2", false, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE,
                     Long.MIN_VALUE,
                     Float.MIN_VALUE, MIN_DOUBLE, BigDecimal.valueOf(MIN_DECIMAL),
                     OffsetDateTime.now(), UUID.randomUUID(),
-                    new byte[]{Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE},
+                    new byte[] { Byte.MIN_VALUE, -10, 0, 10, Byte.MAX_VALUE },
                     Arrays.asList(Float.MIN_VALUE, -10f, 0f, 10f, Float.MAX_VALUE),
-                    new float[]{0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f}
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
                     "ID3", false, Byte.MAX_VALUE, Short.MAX_VALUE, Integer.MAX_VALUE,
@@ -304,18 +310,13 @@ public class OracleVectorStoreDataTypeSearchTest extends OracleCommonVectorStore
                     BIG_NUMBER.subtract(BigDecimal.valueOf(0.01d)),
                     OffsetDateTime.now(), UUID.randomUUID(), null,
                     null,
-                    new float[]{0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f}
-                )
-            ),
+                    new float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f })),
             Arguments.of(
                 new ClassWithAllPrimitiveTypes(
                     "ID3", false, (byte) 0, (short) 0, 0, 0l,
                     0f, 0d, null,
                     null, null, null,
                     null,
-                    null
-                )
-            )
-        );
+                    null)));
     }
 }

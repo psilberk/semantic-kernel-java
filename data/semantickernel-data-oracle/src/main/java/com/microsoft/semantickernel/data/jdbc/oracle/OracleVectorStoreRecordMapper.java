@@ -167,7 +167,8 @@ public class OracleVectorStoreRecordMapper<Record>
                 ObjectNode objectNode = objectMapper.createObjectNode();
 
                 // Read non vector fields
-                for (VectorStoreRecordField field : vectorStoreRecordDefinition.getNonVectorFields()) {
+                for (VectorStoreRecordField field : vectorStoreRecordDefinition
+                    .getNonVectorFields()) {
                     Class<?> fieldType = field.getFieldType();
 
                     Object value;
@@ -226,11 +227,13 @@ public class OracleVectorStoreRecordMapper<Record>
                     objectNode.set(field.getEffectiveStorageName(), genericNode);
                 }
                 if (options != null && options.isIncludeVectors()) {
-                    for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition.getVectorFields()) {
+                    for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition
+                        .getVectorFields()) {
 
                         // String vector
                         if (field.getFieldType().equals(String.class)) {
-                            float[] arr = resultSet.getObject(field.getEffectiveStorageName(), float[].class);
+                            float[] arr = resultSet.getObject(field.getEffectiveStorageName(),
+                                float[].class);
                             String str = (arr == null)
                                 ? null
                                 : objectMapper.writeValueAsString(arr);
@@ -238,12 +241,14 @@ public class OracleVectorStoreRecordMapper<Record>
                             continue;
                         }
 
-                        Object value = resultSet.getObject(field.getEffectiveStorageName(), float[].class);
+                        Object value = resultSet.getObject(field.getEffectiveStorageName(),
+                            float[].class);
                         JsonNode genericNode = objectMapper.valueToTree(value);
                         objectNode.set(field.getEffectiveStorageName(), genericNode);
                     }
                 } else {
-                    for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition.getVectorFields()) {
+                    for (VectorStoreRecordVectorField field : vectorStoreRecordDefinition
+                        .getVectorFields()) {
                         JsonNode genericNode = objectMapper.valueToTree(null);
                         objectNode.set(field.getEffectiveStorageName(), genericNode);
                     }

@@ -1,4 +1,4 @@
-
+// Copyright (c) Microsoft. All rights reserved.
 package com.microsoft.semantickernel.data.jdbc.oracle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,7 +31,7 @@ public class Hotel {
     private final List<String> tags;
 
     @JsonProperty("summary")
-    @VectorStoreRecordData( isFilterable = true, isFullTextSearchable = true )
+    @VectorStoreRecordData(isFilterable = true, isFullTextSearchable = true)
     private final String description;
 
     @JsonProperty("summaryEmbedding1")
@@ -95,9 +95,13 @@ public class Hotel {
         return code;
     }
 
-    public double getPrice() { return price; }
+    public double getPrice() {
+        return price;
+    }
 
-    public List<String> getTags() { return tags; }
+    public List<String> getTags() {
+        return tags;
+    }
 
     public String getDescription() {
         return description;
@@ -107,7 +111,7 @@ public class Hotel {
         return euclidean;
     }
 
-    public float[]  getCosineDistance() {
+    public float[] getCosineDistance() {
         return cosineDistance;
     }
 

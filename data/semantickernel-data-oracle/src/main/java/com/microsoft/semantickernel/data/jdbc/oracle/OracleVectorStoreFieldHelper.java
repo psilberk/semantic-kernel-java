@@ -54,14 +54,16 @@ class OracleVectorStoreFieldHelper {
     /**
      * The logger
      */
-    private static final Logger LOGGER = Logger.getLogger(OracleVectorStoreFieldHelper.class.getName());
+    private static final Logger LOGGER = Logger
+        .getLogger(OracleVectorStoreFieldHelper.class.getName());
 
     /**
      * Maps supported key java classes to Oracle database types
      */
     private static final HashMap<Class<?>, String> supportedKeyTypes = new HashMap();
     static {
-        supportedKeyTypes.put(String.class, String.format(OracleDataTypesMapping.STRING_VARCHAR, 255));
+        supportedKeyTypes.put(String.class,
+            String.format(OracleDataTypesMapping.STRING_VARCHAR, 255));
     }
 
     /**
@@ -148,7 +150,8 @@ class OracleVectorStoreFieldHelper {
      * @return the CREATE VECTOR INDEX statement to create the index according to the vector
      *         field definition.
      */
-    static String getCreateVectorIndexStatement(VectorStoreRecordVectorField field, String collectionTableName) {
+    static String getCreateVectorIndexStatement(VectorStoreRecordVectorField field,
+        String collectionTableName) {
         switch (field.getIndexKind()) {
             case IVFFLAT:
                 return "CREATE VECTOR INDEX IF NOT EXISTS "
@@ -181,21 +184,23 @@ class OracleVectorStoreFieldHelper {
      *
      * @return the CREATE INDEX statement to create the index according to the field definition.
      */
-    static String createIndexForDataField(String collectionTableName, VectorStoreRecordDataField dataField, Map<Class<?>, String> supportedDataTypes) {
+    static String createIndexForDataField(String collectionTableName,
+        VectorStoreRecordDataField dataField, Map<Class<?>, String> supportedDataTypes) {
         if (supportedDataTypes.get(dataField.getFieldType()) == "JSON") {
             String dataFieldIndex = "CREATE MULTIVALUE INDEX IF NOT EXISTS %s ON %s t (t.%s.%s)";
             return String.format(dataFieldIndex,
-                validateObjectNaming(collectionTableName + "_" + dataField.getEffectiveStorageName()),
+                validateObjectNaming(
+                    collectionTableName + "_" + dataField.getEffectiveStorageName()),
                 validateObjectNaming(collectionTableName),
                 validateObjectNaming(dataField.getEffectiveStorageName()),
                 getFunctionForType(supportedDataTypes.get(dataField.getFieldSubType())));
-        }  else {
+        } else {
             String dataFieldIndex = "CREATE INDEX IF NOT EXISTS %s ON %s (%s ASC)";
             return String.format(dataFieldIndex,
-                validateObjectNaming(collectionTableName + "_" + dataField.getEffectiveStorageName()),
+                validateObjectNaming(
+                    collectionTableName + "_" + dataField.getEffectiveStorageName()),
                 validateObjectNaming(collectionTableName),
-                validateObjectNaming(dataField.getEffectiveStorageName())
-            );
+                validateObjectNaming(dataField.getEffectiveStorageName()));
         }
     }
 
@@ -207,8 +212,8 @@ class OracleVectorStoreFieldHelper {
     static String getVectorColumnNamesAndTypes(List<VectorStoreRecordVectorField> fields) {
         List<String> columns = fields.stream()
             .map(field -> validateObjectNaming(field.getEffectiveStorageName()) + " " +
-                OracleVectorStoreFieldHelper.getTypeForVectorField(field)
-            ).collect(Collectors.toList());
+                OracleVectorStoreFieldHelper.getTypeForVectorField(field))
+            .collect(Collectors.toList());
 
         return String.join(", ", columns);
     }
@@ -219,9 +224,9 @@ class OracleVectorStoreFieldHelper {
      * @return column name and type of the key field for CREATE TABLE statement.
      */
     static String getKeyColumnNameAndType(VectorStoreRecordKeyField field) {
-        return validateObjectNaming(field.getEffectiveStorageName()) + " " + supportedKeyTypes.get(field.getFieldType());
+        return validateObjectNaming(field.getEffectiveStorageName()) + " "
+            + supportedKeyTypes.get(field.getFieldType());
     }
-
 
     /**
      * Generates the index name given the field name. by suffixing "_VECTOR_INDEX" to the field name.
@@ -268,7 +273,6 @@ class OracleVectorStoreFieldHelper {
                 return "string()";
         }
     }
-
 
     /**
      * Validates an SQL identifier.

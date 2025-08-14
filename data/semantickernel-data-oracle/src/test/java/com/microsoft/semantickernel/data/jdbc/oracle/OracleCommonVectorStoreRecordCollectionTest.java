@@ -62,7 +62,8 @@ public class OracleCommonVectorStoreRecordCollectionTest {
                     oracleContainer.getJdbcUrl(),
                     oracleContainer.getUsername(),
                     oracleContainer.getPassword());
-                initDataSource(SYSDBA_DATA_SOURCE, oracleContainer.getJdbcUrl(), "sys", oracleContainer.getPassword());
+                initDataSource(SYSDBA_DATA_SOURCE, oracleContainer.getJdbcUrl(), "sys",
+                    oracleContainer.getPassword());
             } else {
                 initDataSource(
                     DATA_SOURCE,
@@ -75,14 +76,16 @@ public class OracleCommonVectorStoreRecordCollectionTest {
                     System.getenv("ORACLE_JDBC_USER"),
                     System.getenv("ORACLE_JDBC_PASSWORD"));
             }
-            SYSDBA_DATA_SOURCE.setConnectionProperty(OracleConnection.CONNECTION_PROPERTY_INTERNAL_LOGON, "SYSDBA");
+            SYSDBA_DATA_SOURCE.setConnectionProperty(
+                OracleConnection.CONNECTION_PROPERTY_INTERNAL_LOGON, "SYSDBA");
 
         } catch (SQLException sqlException) {
             throw new AssertionError(sqlException);
         }
     }
 
-    static void initDataSource(OracleDataSource dataSource, String url, String username, String password) {
+    static void initDataSource(OracleDataSource dataSource, String url, String username,
+        String password) {
         dataSource.setURL(url);
         dataSource.setUser(username);
         dataSource.setPassword(password);

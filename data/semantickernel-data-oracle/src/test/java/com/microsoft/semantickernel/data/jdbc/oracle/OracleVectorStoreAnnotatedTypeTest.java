@@ -51,11 +51,13 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreRecordCollectionTest {
+public class OracleVectorStoreAnnotatedTypeTest
+    extends OracleCommonVectorStoreRecordCollectionTest {
 
     @ParameterizedTest
     @MethodSource("supportedDataTypes")
-    void testDataTypes(String dataFieldName, Class<?> dataFieldType, Object dataFieldValue, Class<?> fieldSubType) {
+    void testDataTypes(String dataFieldName, Class<?> dataFieldType, Object dataFieldValue,
+        Class<?> fieldSubType) {
         VectorStoreRecordKeyField keyField = VectorStoreRecordKeyField.builder()
             .withName("id")
             .withStorageName("id")
@@ -79,13 +81,12 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
                 .build();
         }
         VectorStoreRecordDataField dataTypeField;
-            dataTypeField = VectorStoreRecordDataField.builder()
-                .withName("valueType")
-                .withStorageName("value_type")
-                .withFieldType(String.class)
-                .isFilterable(false)
-                .build();
-
+        dataTypeField = VectorStoreRecordDataField.builder()
+            .withName("valueType")
+            .withStorageName("value_type")
+            .withFieldType(String.class)
+            .isFilterable(false)
+            .build();
 
         VectorStoreRecordVectorField dummyVector = VectorStoreRecordVectorField.builder()
             .withName("vectorValue")
@@ -97,8 +98,7 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
             .build();
 
         VectorStoreRecordDefinition definition = VectorStoreRecordDefinition.fromFields(
-            Arrays.asList(keyField, dataTypeField, dataField, dummyVector)
-        );
+            Arrays.asList(keyField, dataTypeField, dataField, dummyVector));
 
         OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
             .withDataSource(DATA_SOURCE)
@@ -113,9 +113,9 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
 
         String collectionName = "test_datatype_" + dataFieldName;
 
-        VectorStoreRecordCollection<String, ClassWithAnnotatedTypes> collection =
-            vectorStore.getCollection(collectionName,
-                JDBCVectorStoreRecordCollectionOptions.<ClassWithAnnotatedTypes> builder()
+        VectorStoreRecordCollection<String, ClassWithAnnotatedTypes> collection = vectorStore
+            .getCollection(collectionName,
+                JDBCVectorStoreRecordCollectionOptions.<ClassWithAnnotatedTypes>builder()
                     .withRecordClass(ClassWithAnnotatedTypes.class)
                     .withRecordDefinition(definition).build());
 
@@ -123,17 +123,18 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
 
         String key = "testid";
 
-        ClassWithAnnotatedTypes record =
-            new ClassWithAnnotatedTypes(key, dataFieldName, dataFieldValue, new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f });
+        ClassWithAnnotatedTypes record = new ClassWithAnnotatedTypes(key, dataFieldName,
+            dataFieldValue, new Float[] { 0.5f, 3.2f, 7.1f, -4.0f, 2.8f, 10.0f, -1.3f, 5.5f });
 
         collection.upsertAsync(record, null).block();
 
         ClassWithAnnotatedTypes result = collection.getAsync(key, null).block();
         assertNotNull(result);
         if (record.getValue().getClass().equals(OffsetDateTime.class)) {
-            assertTrue(((OffsetDateTime)dataFieldValue).isEqual((OffsetDateTime)record.getValue()));
+            assertTrue(
+                ((OffsetDateTime) dataFieldValue).isEqual((OffsetDateTime) record.getValue()));
         } else if (dataFieldName == "byte_array") {
-            assertArrayEquals((byte[]) dataFieldValue, (byte[])record.getValue());
+            assertArrayEquals((byte[]) dataFieldValue, (byte[]) record.getValue());
         } else {
             assertEquals(dataFieldValue, result.getValue());
         }
@@ -155,9 +156,8 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
             Arguments.of("decimal", BigDecimal.class, new BigDecimal("12345.67"), null),
             Arguments.of("timestamp", OffsetDateTime.class, OffsetDateTime.now(), null),
             Arguments.of("uuid", UUID.class, UUID.randomUUID(), null),
-            Arguments.of("byte_array", byte[].class, new byte[] {1, 2, 3}, String.class),
-            Arguments.of("json", List.class, Arrays.asList("a", "s", "d"), String.class)
-        );
+            Arguments.of("byte_array", byte[].class, new byte[] { 1, 2, 3 }, String.class),
+            Arguments.of("json", List.class, Arrays.asList("a", "s", "d"), String.class));
     }
 
 }
