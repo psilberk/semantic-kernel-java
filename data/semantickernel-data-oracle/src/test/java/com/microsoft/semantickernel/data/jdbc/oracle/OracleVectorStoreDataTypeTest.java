@@ -133,11 +133,16 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertNotNull(result);
 
         System.out.println("result : " + result.getId());
-        System.out.println("boolean : " + record.getBooleanValue() + " - " + result.getBooleanValue());
-        System.out.println("byte : " + record.getByteValue() + " - " + result.getByteValue());
-        System.out.println("double : " + record.getDoubleValue() + " - " + result.getDoubleValue());
-        System.out.println("float : " + record.getFloatValue() + " - " + result.getFloatValue());
-        System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue());
+        System.out.println("boolean : " + record.getBooleanValue() + " - " + result.getBooleanValue() + " - "
+                + values.getBooleanValue());
+        System.out.println("byte : " + record.getByteValue() + " - " + result.getByteValue() + " - "
+                + values.getByteValue());
+        System.out.println("double : " + record.getDoubleValue() + " - " + result.getDoubleValue() + " - "
+                + values.getDoubleValue());
+        System.out.println("float : " + record.getFloatValue() + " - " + result.getFloatValue() + " - "
+                + values.getFloatValue());
+        System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue() + " - "
+                + values.getIntegerValue());
 /*
         assertEquals(values.getBooleanValue(), result.getBooleanValue());
         assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
