@@ -165,13 +165,13 @@ public class OracleVectorStoreDataTypeSearchTest
                 .build())
             .block();
 
-        assertEquals(1, results.getTotalCount());
+        assertEquals(1, results.getTotalCount(), "Wrong count");
         if (record.getDecimalValue() != null) {
             assertEquals(0, record.getDecimalValue()
-                .compareTo(results.getResults().get(0).getRecord().getDecimalValue()));
+                .compareTo(results.getResults().get(0).getRecord().getDecimalValue()), "Wrong value");
         } else {
             assertEquals(record.getDecimalValue(),
-                results.getResults().get(0).getRecord().getDecimalValue());
+                results.getResults().get(0).getRecord().getDecimalValue(), "Should be null");
         }
 
         // offset date time
