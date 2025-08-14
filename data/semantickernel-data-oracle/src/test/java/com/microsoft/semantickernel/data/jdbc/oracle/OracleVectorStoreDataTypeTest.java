@@ -133,6 +133,11 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertNotNull(result);
 
         System.out.println("result : " + result.getId());
+        System.out.println("boolean : " + record.getBooleanValue() + " - " + result.getBooleanValue());
+        System.out.println("byte : " + record.getByteValue() + " - " + result.getByteValue());
+        System.out.println("double : " + record.getDoubleValue() + " - " + result.getDoubleValue());
+        System.out.println("float : " + record.getFloatValue() + " - " + result.getFloatValue());
+        System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue());
 /*
         assertEquals(values.getBooleanValue(), result.getBooleanValue());
         assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
