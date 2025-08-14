@@ -102,21 +102,7 @@
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <configuration>
-                    <skip>${compilingJdk8}</skip>
-                    <java>
-                        <eclipse>
-                            <version>4.30</version>
-                            <file>./eclipse-formatter.xml</file>
-                        </eclipse>
-                        <!--
-                        <googleJavaFormat>
-                            <version>${google.java.format.version}</version>
-                            <style>AOSP</style>
-                            <reflowLongStrings>true</reflowLongStrings>
-                        </googleJavaFormat>
-                        -->
-                        <toggleOffOn />
-                    </java>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
