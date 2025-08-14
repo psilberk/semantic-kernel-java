@@ -146,6 +146,9 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                 + values.getFloatValue());
         System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue() + " - "
                 + values.getIntegerValue());
+        System.out.println("OffsetDateTime : " + (record.getOffsetDateTimeValue() == null ? "null" : record
+                .getOffsetDateTimeValue().toInstant()) + " - " + (result.getOffsetDateTimeValue() == null ? "null"
+                        : result.getOffsetDateTimeValue().toInstant()) );
         assertEquals(values.getBooleanValue(), result.getBooleanValue());
         assertEquals(values.getByteValue(), result.getByteValue());
         assertEquals(values.getDoubleValue(), result.getDoubleValue());
