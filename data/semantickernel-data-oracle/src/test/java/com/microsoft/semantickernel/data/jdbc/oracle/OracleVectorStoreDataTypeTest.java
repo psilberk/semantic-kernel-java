@@ -143,15 +143,17 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                 + values.getFloatValue());
         System.out.println("int : " + record.getIntegerValue() + " - " + result.getIntegerValue() + " - "
                 + values.getIntegerValue());
-/*
         assertEquals(values.getBooleanValue(), result.getBooleanValue());
-        assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
         assertEquals(values.getByteValue(), result.getByteValue());
         assertEquals(values.getDoubleValue(), result.getDoubleValue());
         assertEquals(values.getFloatValue(), result.getFloatValue());
         assertEquals(values.getIntegerValue(), result.getIntegerValue());
-        assertEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
         assertEquals(values.getLongValue(), result.getLongValue());
+
+        /*
+        assertEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
+        assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
+        
         if (values.getOffsetDateTimeValue() != null) {
             assertTrue(values.getOffsetDateTimeValue().isEqual(result.getOffsetDateTimeValue()));
         } else {
@@ -159,7 +161,7 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         }
         assertEquals(values.getShortValue(), result.getShortValue());
         assertEquals(values.getUuidValue(), result.getUuidValue());
-*/
+        */
         collection.deleteCollectionAsync().block();
     }
 
