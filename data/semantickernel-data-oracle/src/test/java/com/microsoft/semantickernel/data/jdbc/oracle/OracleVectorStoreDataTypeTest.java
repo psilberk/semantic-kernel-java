@@ -151,10 +151,10 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         assertEquals(values.getLongValue(), result.getLongValue());
         assertEquals(values.getShortValue(), result.getShortValue());
         assertEquals(values.getUuidValue(), result.getUuidValue());
+        assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
 
         /*
         assertEquals(values.getListOfFloatValue(), result.getListOfFloatValue());
-        assertArrayEquals(values.getByteArrayValue(), result.getByteArrayValue());
         
         if (values.getOffsetDateTimeValue() != null) {
             assertTrue(values.getOffsetDateTimeValue().isEqual(result.getOffsetDateTimeValue()));
