@@ -58,7 +58,7 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
     private static final BigDecimal BIG_NUMBER = BigDecimal.valueOf(9999999999999999.99);
 
 
-    void testOffsetDateTime() throws SQLException {
+    void offsetDateTimeTest() throws SQLException {
         OffsetDateTime time = OffsetDateTime.now();
         try (Connection conn = DATA_SOURCE.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
