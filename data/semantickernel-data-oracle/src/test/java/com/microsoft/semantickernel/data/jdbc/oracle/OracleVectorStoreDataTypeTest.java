@@ -35,11 +35,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,6 +56,51 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecordCollectionTest {
     private static final double MIN_NUMBER = 1.0E-130;
     private static final BigDecimal BIG_NUMBER = BigDecimal.valueOf(9999999999999999.99);
+
+
+    void testOffsetDateTime() throws SQLException {
+        OffsetDateTime time = OffsetDateTime.now();
+        try (Connection conn = DATA_SOURCE.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("CREATE TABLE test_offsetdatetime (id number, offsetTime TIMESTAMP(7) WITH TIME ZONE)");
+            }
+            try (PreparedStatement preparedStatement = conn
+                    .prepareStatement("INSERT INTO test_offsetdatetime(id, offsetTime) VALUES (?,?)")) {
+                preparedStatement.setInt(1, 1);
+                preparedStatement.setObject(2, time);
+                preparedStatement.execute();
+            }
+
+            try (PreparedStatement preparedStatement = conn
+                    .prepareStatement("SELECT offsetTime FROM  test_offsetdatetime WHERE id = ?")) {
+                preparedStatement.setInt(1, 1);
+                try (ResultSet rs = preparedStatement.executeQuery()) {
+                    if (rs.next()) {
+                        OffsetDateTime resulTime = rs.getObject(1, OffsetDateTime.class);
+                        System.out.println("Expected: " + time + " got: " + resulTime);
+                        assertTrue(time.isEqual(resulTime));
+                    } else {
+                        fail("Seach by id: Row not found");
+                    }
+                }
+            }
+
+            try (PreparedStatement preparedStatement = conn
+                    .prepareStatement("SELECT id FROM  test_offsetdatetime WHERE offsetTime = ?")) {
+                preparedStatement.setObject(1, time);
+                try (ResultSet rs = preparedStatement.executeQuery()) {
+                    if (rs.next()) {
+                        int id = rs.getInt(1);
+                        System.out.println("Expected: 1 got: " + id);
+                        assertEquals(1, id);
+                    } else {
+                        fail("Search by date: Row not found");
+                    }
+                }
+            }
+
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("supportedDataTypes")
