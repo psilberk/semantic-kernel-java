@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         # Defines a matrix strategy for JDK versions 8 and 17
-        java-versions: [17]
+        java-versions: [8, 17]
 
     name: Java CI on JDK${{ matrix.java-versions }}
 
