@@ -80,7 +80,8 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
                     if (rs.next()) {
                         OffsetDateTime resulTime = rs.getObject(1, OffsetDateTime.class);
                         System.out.println("Expected: " + time + " got: " + resulTime);
-                        assertTrue(time.equals(resulTime));
+                        assertEquals(time, resulTime);
+                        //assertTrue(time.equals(resulTime));
                     } else {
                         fail("Seach by id: Row not found");
                     }
