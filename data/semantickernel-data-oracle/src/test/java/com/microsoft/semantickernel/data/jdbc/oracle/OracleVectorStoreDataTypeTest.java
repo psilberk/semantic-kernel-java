@@ -64,7 +64,7 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
         OffsetDateTime time = OffsetDateTime.now();
         try (Connection conn = DATA_SOURCE.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("CREATE TABLE test_offsetdatetime (id number, offsetTime TIMESTAMP(7) WITH TIME ZONE)");
+                stmt.execute("CREATE TABLE test_offsetdatetime (id number, offsetTime TIMESTAMP(9) WITH TIME ZONE)");
             }
             try (PreparedStatement preparedStatement = conn
                     .prepareStatement("INSERT INTO test_offsetdatetime(id, offsetTime) VALUES (?,?)")) {
