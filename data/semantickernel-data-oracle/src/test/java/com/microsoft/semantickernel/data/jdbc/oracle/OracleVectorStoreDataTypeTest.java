@@ -29,6 +29,8 @@ import com.microsoft.semantickernel.data.jdbc.JDBCVectorStore;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreOptions;
 import com.microsoft.semantickernel.data.jdbc.JDBCVectorStoreRecordCollectionOptions;
 import com.microsoft.semantickernel.data.vectorstorage.VectorStoreRecordCollection;
+
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -57,7 +59,7 @@ public class OracleVectorStoreDataTypeTest extends OracleCommonVectorStoreRecord
     private static final double MIN_NUMBER = 1.0E-130;
     private static final BigDecimal BIG_NUMBER = BigDecimal.valueOf(9999999999999999.99);
 
-
+    @Test
     void offsetDateTimeTest() throws SQLException {
         OffsetDateTime time = OffsetDateTime.now();
         try (Connection conn = DATA_SOURCE.getConnection()) {
