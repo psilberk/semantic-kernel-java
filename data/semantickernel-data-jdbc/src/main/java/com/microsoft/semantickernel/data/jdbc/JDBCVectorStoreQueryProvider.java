@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -42,8 +43,8 @@ import org.slf4j.LoggerFactory;
 /**
  * A JDBC vector store query provider.
  */
-public class JDBCVectorStoreQueryProvider
-    implements SQLVectorStoreQueryProvider,
+public class JDBCVectorStoreQueryProvider<Key>
+    implements SQLVectorStoreQueryProvider<Key>,
     SQLVectorStoreFilterQueryProvider {
 
     private static final Logger LOGGER = LoggerFactory
@@ -122,8 +123,8 @@ public class JDBCVectorStoreQueryProvider
      *
      * @return the builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static <Key> Builder<Key> builder() {
+        return new Builder<Key>();
     }
 
     /**
@@ -407,7 +408,7 @@ public class JDBCVectorStoreQueryProvider
      * @throws SKException if an error occurs while getting the records
      */
     @Override
-    public <Record> List<Record> getRecords(String collectionName, List<String> keys,
+    public <Record> List<Record> getRecords(String collectionName, List<Key> keys,
         VectorStoreRecordDefinition recordDefinition,
         VectorStoreRecordMapper<Record, ResultSet> mapper,
         GetRecordOptions options) {
@@ -438,7 +439,11 @@ public class JDBCVectorStoreQueryProvider
         try (Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(query)) {
             for (int i = 0; i < keys.size(); ++i) {
-                statement.setObject(i + 1, keys.get(i));
+                if (recordDefinition.getKeyField().getFieldType().equals(UUID.class)) {
+                    statement.setObject(i + 1, keys.get(i).toString());
+                } else {
+                    statement.setObject(i + 1, keys.get(i));
+                }
             }
 
             List<Record> records = new ArrayList<>();
@@ -471,7 +476,7 @@ public class JDBCVectorStoreQueryProvider
      * @throws SKException if an error occurs while deleting the records
      */
     @Override
-    public void deleteRecords(String collectionName, List<String> keys,
+    public void deleteRecords(String collectionName, List<Key> keys,
         VectorStoreRecordDefinition recordDefinition, DeleteRecordOptions options) {
         String query = formatQuery("DELETE FROM %s WHERE %s IN (%s)",
             getCollectionTableName(collectionName),
@@ -481,7 +486,11 @@ public class JDBCVectorStoreQueryProvider
         try (Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(query)) {
             for (int i = 0; i < keys.size(); ++i) {
-                statement.setObject(i + 1, keys.get(i));
+                if (recordDefinition.getKeyField().getFieldType().equals(UUID.class)) {
+                    statement.setObject(i + 1, keys.get(i).toString());
+                } else {
+                    statement.setObject(i + 1, keys.get(i));
+                }
             }
 
             statement.execute();
@@ -714,8 +723,8 @@ public class JDBCVectorStoreQueryProvider
     /**
      * The builder for {@link JDBCVectorStoreQueryProvider}.
      */
-    public static class Builder
-        implements SQLVectorStoreQueryProvider.Builder {
+    public static class Builder<Key>
+        implements SQLVectorStoreQueryProvider.Builder<Key> {
 
         private DataSource dataSource;
         private String collectionsTable = DEFAULT_COLLECTIONS_TABLE;
@@ -728,7 +737,7 @@ public class JDBCVectorStoreQueryProvider
          * @return the builder
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource is not exposed
-        public Builder withDataSource(DataSource dataSource) {
+        public Builder<Key> withDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
             return this;
         }
@@ -739,7 +748,7 @@ public class JDBCVectorStoreQueryProvider
          * @param collectionsTable the collections table name
          * @return the builder
          */
-        public Builder withCollectionsTable(String collectionsTable) {
+        public Builder<Key> withCollectionsTable(String collectionsTable) {
             this.collectionsTable = validateSQLidentifier(collectionsTable);
             return this;
         }
@@ -750,18 +759,18 @@ public class JDBCVectorStoreQueryProvider
          * @param prefixForCollectionTables the prefix for collection tables
          * @return the builder
          */
-        public Builder withPrefixForCollectionTables(String prefixForCollectionTables) {
+        public Builder<Key> withPrefixForCollectionTables(String prefixForCollectionTables) {
             this.prefixForCollectionTables = validateSQLidentifier(prefixForCollectionTables);
             return this;
         }
 
         @Override
-        public JDBCVectorStoreQueryProvider build() {
+        public JDBCVectorStoreQueryProvider<Key> build() {
             if (dataSource == null) {
                 throw new SKException("DataSource is required");
             }
 
-            return new JDBCVectorStoreQueryProvider(dataSource, collectionsTable,
+            return new JDBCVectorStoreQueryProvider<Key>(dataSource, collectionsTable,
                 prefixForCollectionTables);
         }
     }

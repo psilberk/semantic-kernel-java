@@ -16,22 +16,25 @@ import static com.microsoft.semantickernel.data.jdbc.SQLVectorStoreQueryProvider
  * Options for a JDBC vector store record collection.
  * @param <Record> the record type
  */
-public class JDBCVectorStoreRecordCollectionOptions<Record>
-    implements VectorStoreRecordCollectionOptions<String, Record> {
-    private final Class<Record> recordClass;
-    private final VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper;
-    private final VectorStoreRecordDefinition recordDefinition;
-    private final SQLVectorStoreQueryProvider queryProvider;
-    private final String collectionsTableName;
-    private final String prefixForCollectionTables;
+public class JDBCVectorStoreRecordCollectionOptions<Key, Record>
+    implements VectorStoreRecordCollectionOptions<Key, Record> {
+    protected final Class<Key> keyClass;
+    protected final Class<Record> recordClass;
+    protected final VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper;
+    protected final VectorStoreRecordDefinition recordDefinition;
+    protected final SQLVectorStoreQueryProvider<Key> queryProvider;
+    protected final String collectionsTableName;
+    protected final String prefixForCollectionTables;
 
-    private JDBCVectorStoreRecordCollectionOptions(
+    protected JDBCVectorStoreRecordCollectionOptions(
+        Class<Key> keyClass,
         Class<Record> recordClass,
         VectorStoreRecordDefinition recordDefinition,
         VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper,
-        SQLVectorStoreQueryProvider queryProvider,
+        SQLVectorStoreQueryProvider<Key> queryProvider,
         String collectionsTableName,
         String prefixForCollectionTables) {
+        this.keyClass = keyClass;
         this.recordClass = recordClass;
         this.recordDefinition = recordDefinition;
         this.vectorStoreRecordMapper = vectorStoreRecordMapper;
@@ -41,22 +44,13 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
     }
 
     /**
-     * Creates a new builder.
-     * @param <Record> the record type
-     * @return the builder
-     */
-    public static <Record> Builder<Record> builder() {
-        return new Builder<>();
-    }
-
-    /**
      * Gets the key class.
      *
      * @return the key class
      */
     @Override
-    public Class<String> getKeyClass() {
-        return String.class;
+        public Class<Key> getKeyClass() {
+        return keyClass;
     }
 
     /**
@@ -104,29 +98,51 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
      * @return the query provider
      */
     @SuppressFBWarnings("EI_EXPOSE_REP") // DataSource in queryProvider is not exposed
-    public SQLVectorStoreQueryProvider getQueryProvider() {
+    public SQLVectorStoreQueryProvider<Key> getQueryProvider() {
         return queryProvider;
+    }
+
+    public static <Record> Builder<String, Record> builder() {
+        Builder<String, Record> builder = new Builder<>();
+        builder.keyClass = String.class;
+        return builder;
+    }
+
+    public static <Key, Record> Builder<Key, Record> genericBuilder() {
+        return new Builder<>();
     }
 
     /**
      * Builder for JDBC vector store record collection options.
+     * @param <Key> the key type
      * @param <Record> the record type
      */
-    public static class Builder<Record> {
-        private Class<Record> recordClass;
-        private VectorStoreRecordDefinition recordDefinition;
-        private VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper;
-        private SQLVectorStoreQueryProvider queryProvider;
-        private String collectionsTableName = DEFAULT_COLLECTIONS_TABLE;
-        private String prefixForCollectionTables = DEFAULT_PREFIX_FOR_COLLECTION_TABLES;
+    public static class Builder<Key, Record> {
+        protected Class<Record> recordClass;
+        protected Class<Key> keyClass;
+        protected VectorStoreRecordDefinition recordDefinition;
+        protected VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper;
+        protected SQLVectorStoreQueryProvider<Key> queryProvider;
+        protected String collectionsTableName = DEFAULT_COLLECTIONS_TABLE;
+        protected String prefixForCollectionTables = DEFAULT_PREFIX_FOR_COLLECTION_TABLES;
 
         /**
          * Sets the record class.
          * @param recordClass the record class
          * @return the builder
          */
-        public Builder<Record> withRecordClass(Class<Record> recordClass) {
+        public Builder<Key, Record> withRecordClass(Class<Record> recordClass) {
             this.recordClass = recordClass;
+            return this;
+        }
+
+        /**
+         * Sets the key class.
+         * @param keyClass the key class
+         * @return the builder
+         */
+        public Builder<Key, Record> withKeyClass(Class<Key> keyClass) {
+            this.keyClass = keyClass;
             return this;
         }
 
@@ -135,7 +151,7 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * @param recordDefinition the record definition
          * @return the builder
          */
-        public Builder<Record> withRecordDefinition(VectorStoreRecordDefinition recordDefinition) {
+        public Builder<Key, Record> withRecordDefinition(VectorStoreRecordDefinition recordDefinition) {
             this.recordDefinition = recordDefinition;
             return this;
         }
@@ -145,7 +161,7 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * @param vectorStoreRecordMapper the vector store record mapper
          * @return the builder
          */
-        public Builder<Record> withVectorStoreRecordMapper(
+        public Builder<Key, Record> withVectorStoreRecordMapper(
             VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper) {
             this.vectorStoreRecordMapper = vectorStoreRecordMapper;
             return this;
@@ -157,7 +173,7 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * @return the builder
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource in queryProvider is not exposed
-        public Builder<Record> withQueryProvider(SQLVectorStoreQueryProvider queryProvider) {
+        public Builder<Key, Record> withQueryProvider(SQLVectorStoreQueryProvider<Key> queryProvider) {
             this.queryProvider = queryProvider;
             return this;
         }
@@ -167,7 +183,7 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * @param collectionsTableName the collections table name
          * @return the builder
          */
-        public Builder<Record> withCollectionsTableName(String collectionsTableName) {
+        public Builder<Key, Record> withCollectionsTableName(String collectionsTableName) {
             this.collectionsTableName = JDBCVectorStoreQueryProvider
                 .validateSQLidentifier(collectionsTableName);
             return this;
@@ -178,7 +194,7 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * @param prefixForCollectionTables the prefix for collection tables
          * @return the builder
          */
-        public Builder<Record> withPrefixForCollectionTables(String prefixForCollectionTables) {
+        public Builder<Key, Record> withPrefixForCollectionTables(String prefixForCollectionTables) {
             this.prefixForCollectionTables = JDBCVectorStoreQueryProvider
                 .validateSQLidentifier(prefixForCollectionTables);
             return this;
@@ -188,12 +204,17 @@ public class JDBCVectorStoreRecordCollectionOptions<Record>
          * Builds the options.
          * @return the options
          */
-        public JDBCVectorStoreRecordCollectionOptions<Record> build() {
+        public JDBCVectorStoreRecordCollectionOptions<Key, Record> build() {
             if (recordClass == null) {
                 throw new SKException("recordClass is required");
             }
 
+            if (keyClass == null) {
+                throw new SKException("keyClass is required");
+            }
+
             return new JDBCVectorStoreRecordCollectionOptions<>(
+                keyClass,
                 recordClass,
                 recordDefinition,
                 vectorStoreRecordMapper,

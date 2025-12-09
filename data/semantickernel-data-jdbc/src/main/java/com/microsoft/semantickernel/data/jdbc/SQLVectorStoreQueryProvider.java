@@ -18,7 +18,7 @@ import java.util.Map;
  * The JDBC vector store query provider.
  * Provides the necessary methods to interact with a JDBC vector store and vector store collections.
  */
-public interface SQLVectorStoreQueryProvider {
+public interface SQLVectorStoreQueryProvider<T> {
     /**
      * The default name for the collections table.
      */
@@ -104,7 +104,7 @@ public interface SQLVectorStoreQueryProvider {
      * @param <Record> the record type
      * @return the records
      */
-    <Record> List<Record> getRecords(String collectionName, List<String> keys,
+    <Record> List<Record> getRecords(String collectionName, List<T> keys,
         VectorStoreRecordDefinition recordDefinition,
         VectorStoreRecordMapper<Record, ResultSet> mapper,
         GetRecordOptions options);
@@ -128,7 +128,7 @@ public interface SQLVectorStoreQueryProvider {
      * @param recordDefinition the record definition
      * @param options the options
      */
-    void deleteRecords(String collectionName, List<String> keys,
+    void deleteRecords(String collectionName, List<T> keys,
         VectorStoreRecordDefinition recordDefinition, DeleteRecordOptions options);
 
     /**
@@ -166,7 +166,7 @@ public interface SQLVectorStoreQueryProvider {
     /**
      * The builder for the JDBC vector store query provider.
      */
-    interface Builder extends SemanticKernelBuilder<SQLVectorStoreQueryProvider> {
+    interface Builder<T> extends SemanticKernelBuilder<SQLVectorStoreQueryProvider<T>> {
 
     }
 }

@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * vector store and vector store collections.
  */
 public class MySQLVectorStoreQueryProvider extends
-    JDBCVectorStoreQueryProvider implements SQLVectorStoreQueryProvider {
+    JDBCVectorStoreQueryProvider<String> implements SQLVectorStoreQueryProvider<String> {
 
     private final ObjectMapper objectMapper;
 

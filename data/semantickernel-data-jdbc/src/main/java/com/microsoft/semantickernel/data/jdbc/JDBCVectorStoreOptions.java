@@ -8,11 +8,11 @@ import javax.annotation.Nullable;
 /**
  * Options for the JDBC vector store.
  */
-public class JDBCVectorStoreOptions {
+public class JDBCVectorStoreOptions<Key> {
     @Nullable
     private final JDBCVectorStoreRecordCollectionFactory vectorStoreRecordCollectionFactory;
     @Nullable
-    private final SQLVectorStoreQueryProvider queryProvider;
+    private final SQLVectorStoreQueryProvider<Key> queryProvider;
 
     /**
      * Creates a new instance of the JDBC vector store options.
@@ -23,7 +23,7 @@ public class JDBCVectorStoreOptions {
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource in queryProvider is not exposed
     public JDBCVectorStoreOptions(
-        @Nullable SQLVectorStoreQueryProvider queryProvider,
+        @Nullable SQLVectorStoreQueryProvider<Key> queryProvider,
         @Nullable JDBCVectorStoreRecordCollectionFactory vectorStoreRecordCollectionFactory) {
         this.queryProvider = queryProvider;
         this.vectorStoreRecordCollectionFactory = vectorStoreRecordCollectionFactory;
@@ -43,7 +43,7 @@ public class JDBCVectorStoreOptions {
      */
     @Nullable
     @SuppressFBWarnings("EI_EXPOSE_REP") // DataSource in queryProvider is not exposed
-    public SQLVectorStoreQueryProvider getQueryProvider() {
+    public SQLVectorStoreQueryProvider<Key> getQueryProvider() {
         return queryProvider;
     }
 
@@ -69,9 +69,9 @@ public class JDBCVectorStoreOptions {
     /**
      * Builder for JDBC vector store options.
      */
-    public static class Builder {
+    public static class Builder<Key> {
         @Nullable
-        private SQLVectorStoreQueryProvider queryProvider;
+        private SQLVectorStoreQueryProvider<Key> queryProvider;
         @Nullable
         private JDBCVectorStoreRecordCollectionFactory vectorStoreRecordCollectionFactory;
 
@@ -82,7 +82,7 @@ public class JDBCVectorStoreOptions {
          * @return The updated builder instance.
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource in queryProvider is not exposed
-        public Builder withQueryProvider(SQLVectorStoreQueryProvider queryProvider) {
+        public Builder<Key> withQueryProvider(SQLVectorStoreQueryProvider<Key> queryProvider) {
             this.queryProvider = queryProvider;
             return this;
         }
@@ -93,7 +93,7 @@ public class JDBCVectorStoreOptions {
          * @param vectorStoreRecordCollectionFactory The vector store record collection factory.
          * @return The updated builder instance.
          */
-        public Builder withVectorStoreRecordCollectionFactory(
+        public Builder<Key> withVectorStoreRecordCollectionFactory(
             JDBCVectorStoreRecordCollectionFactory vectorStoreRecordCollectionFactory) {
             this.vectorStoreRecordCollectionFactory = vectorStoreRecordCollectionFactory;
             return this;
@@ -104,8 +104,8 @@ public class JDBCVectorStoreOptions {
          *
          * @return The JDBC vector store options.
          */
-        public JDBCVectorStoreOptions build() {
-            return new JDBCVectorStoreOptions(queryProvider, vectorStoreRecordCollectionFactory);
+        public JDBCVectorStoreOptions<Key> build() {
+            return new JDBCVectorStoreOptions<Key>(queryProvider, vectorStoreRecordCollectionFactory);
         }
     }
 }

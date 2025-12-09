@@ -30,14 +30,14 @@ import reactor.core.scheduler.Schedulers;
  *
  * @param <Record> the type of the records in the collection
  */
-public class JDBCVectorStoreRecordCollection<Record>
-    implements SQLVectorStoreRecordCollection<String, Record> {
+public class JDBCVectorStoreRecordCollection<Key, Record>
+    implements SQLVectorStoreRecordCollection<Key, Record> {
 
     private final String collectionName;
     protected final VectorStoreRecordDefinition recordDefinition;
     protected final VectorStoreRecordMapper<Record, ResultSet> vectorStoreRecordMapper;
-    private final JDBCVectorStoreRecordCollectionOptions<Record> options;
-    protected final SQLVectorStoreQueryProvider queryProvider;
+    private final JDBCVectorStoreRecordCollectionOptions<Key, Record> options;
+    protected final SQLVectorStoreQueryProvider<Key> queryProvider;
 
     /**
      * Creates a new instance of the {@link JDBCVectorStoreRecordCollection}.
@@ -50,7 +50,7 @@ public class JDBCVectorStoreRecordCollection<Record>
     public JDBCVectorStoreRecordCollection(
         @Nonnull DataSource dataSource,
         @Nonnull String collectionName,
-        @Nonnull JDBCVectorStoreRecordCollectionOptions<Record> options) {
+        @Nonnull JDBCVectorStoreRecordCollectionOptions<Key, Record> options) {
         this.collectionName = collectionName;
         this.options = options;
 
@@ -61,7 +61,7 @@ public class JDBCVectorStoreRecordCollection<Record>
 
         // If the query provider is not provided, set a default one
         if (options.getQueryProvider() == null) {
-            this.queryProvider = JDBCVectorStoreQueryProvider.builder()
+            this.queryProvider = JDBCVectorStoreQueryProvider.<Key>builder()
                 .withDataSource(dataSource)
                 .build();
         } else {
@@ -111,7 +111,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<VectorStoreRecordCollection<String, Record>> createCollectionAsync() {
+    public Mono<VectorStoreRecordCollection<Key, Record>> createCollectionAsync() {
         return Mono.fromRunnable(
             () -> queryProvider.createCollection(this.collectionName, recordDefinition))
             .subscribeOn(Schedulers.boundedElastic())
@@ -125,7 +125,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<VectorStoreRecordCollection<String, Record>> createCollectionIfNotExistsAsync() {
+    public Mono<VectorStoreRecordCollection<Key, Record>> createCollectionIfNotExistsAsync() {
         return collectionExistsAsync().map(
             exists -> {
                 if (!exists) {
@@ -160,7 +160,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<Record> getAsync(String key, GetRecordOptions options) {
+    public Mono<Record> getAsync(Key key, GetRecordOptions options) {
         Objects.requireNonNull(key, "key is required");
 
         return this.getBatchAsync(Collections.singletonList(key), options)
@@ -181,7 +181,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<List<Record>> getBatchAsync(@Nonnull List<String> keys, GetRecordOptions options) {
+    public Mono<List<Record>> getBatchAsync(@Nonnull List<Key> keys, GetRecordOptions options) {
         Objects.requireNonNull(keys, "keys is required");
 
         return Mono.fromCallable(
@@ -190,12 +190,12 @@ public class JDBCVectorStoreRecordCollection<Record>
             .subscribeOn(Schedulers.boundedElastic());
     }
 
-    protected String getKeyFromRecord(Record data) {
+    protected Key getKeyFromRecord(Record data) {
         try {
             Field keyField = data.getClass()
                 .getDeclaredField(recordDefinition.getKeyField().getName());
             keyField.setAccessible(true);
-            return keyField.get(data).toString();
+            return (Key)keyField.get(data);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new SKException("Failed to get key from record", e);
         }
@@ -210,7 +210,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<String> upsertAsync(Record data, UpsertRecordOptions options) {
+    public Mono<Key> upsertAsync(Record data, UpsertRecordOptions options) {
         Objects.requireNonNull(data, "data is required");
 
         return this.upsertBatchAsync(Collections.singletonList(data), options)
@@ -231,7 +231,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<List<String>> upsertBatchAsync(List<Record> data, UpsertRecordOptions options) {
+    public Mono<List<Key>> upsertBatchAsync(List<Record> data, UpsertRecordOptions options) {
         Objects.requireNonNull(data, "data is required");
 
         return Mono.fromCallable(
@@ -251,7 +251,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<Void> deleteAsync(String key, DeleteRecordOptions options) {
+    public Mono<Void> deleteAsync(Key key, DeleteRecordOptions options) {
         return this.deleteBatchAsync(Collections.singletonList(key), options);
     }
 
@@ -264,7 +264,7 @@ public class JDBCVectorStoreRecordCollection<Record>
      * @throws SKException if the operation fails
      */
     @Override
-    public Mono<Void> deleteBatchAsync(List<String> keys, DeleteRecordOptions options) {
+    public Mono<Void> deleteBatchAsync(List<Key> keys, DeleteRecordOptions options) {
         return Mono.fromRunnable(
             () -> {
                 queryProvider.deleteRecords(this.collectionName, keys, recordDefinition, options);
@@ -305,12 +305,12 @@ public class JDBCVectorStoreRecordCollection<Record>
      *
      * @param <Record> the type of the records in the collection
      */
-    public static class Builder<Record>
-        implements SemanticKernelBuilder<JDBCVectorStoreRecordCollection<Record>> {
+    public static class Builder<Key, Record>
+        implements SemanticKernelBuilder<JDBCVectorStoreRecordCollection<Key, Record>> {
 
         private DataSource dataSource;
         private String collectionName;
-        private JDBCVectorStoreRecordCollectionOptions<Record> options;
+        private JDBCVectorStoreRecordCollectionOptions<Key, Record> options;
 
         /**
          * Sets the data source.
@@ -319,7 +319,7 @@ public class JDBCVectorStoreRecordCollection<Record>
          * @return the builder
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource is not exposed
-        public Builder<Record> withDataSource(DataSource dataSource) {
+        public Builder<Key, Record> withDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
             return this;
         }
@@ -330,7 +330,7 @@ public class JDBCVectorStoreRecordCollection<Record>
          * @param collectionName the collection name
          * @return the builder
          */
-        public Builder<Record> withCollectionName(String collectionName) {
+        public Builder<Key, Record> withCollectionName(String collectionName) {
             this.collectionName = collectionName;
             return this;
         }
@@ -341,13 +341,13 @@ public class JDBCVectorStoreRecordCollection<Record>
          * @param options the options
          * @return the builder
          */
-        public Builder<Record> withOptions(JDBCVectorStoreRecordCollectionOptions<Record> options) {
+        public Builder<Key, Record> withOptions(JDBCVectorStoreRecordCollectionOptions<Key, Record> options) {
             this.options = options;
             return this;
         }
 
         @Override
-        public JDBCVectorStoreRecordCollection<Record> build() {
+        public JDBCVectorStoreRecordCollection<Key, Record> build() {
             if (dataSource == null) {
                 throw new SKException("dataSource is required");
             }
