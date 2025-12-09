@@ -43,6 +43,7 @@ import com.microsoft.semantickernel.data.vectorstorage.definition.DistanceFuncti
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDataField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordDefinition;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordField;
+import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordKeyField;
 import com.microsoft.semantickernel.data.vectorstorage.definition.VectorStoreRecordVectorField;
 import com.microsoft.semantickernel.data.vectorstorage.options.GetRecordOptions;
 import com.microsoft.semantickernel.data.vectorstorage.options.UpsertRecordOptions;
@@ -77,7 +78,7 @@ import oracle.sql.TIMESTAMPTZ;
 /**
  * JDBC Vector Store for the Oracle Database
  */
-public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider {
+public class OracleVectorStoreQueryProvider<Key> extends JDBCVectorStoreQueryProvider<Key> {
 
     // This could be removed if super.collectionTable made protected
     private final String collectionsTable;
@@ -363,7 +364,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
                         }
                         continue;
                     }
-                } else if (field instanceof VectorStoreRecordDataField) {
+                } else if (field instanceof VectorStoreRecordDataField || field instanceof VectorStoreRecordKeyField) {
                     // Lists are stored as JSON objects, write the list using the JDBC OSON
                     // extensions.
                     if (field.getFieldType().equals(List.class)) {
@@ -751,15 +752,15 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
      * Gets a builder that allows to build an OracleVectorStoreQueryProvider
      * @return the builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static <Key> Builder<Key> builder() {
+        return new Builder<Key>();
     }
 
     /**
      * OracleVectorStoreQueryProvider builder.
      */
-    public static class Builder
-        extends JDBCVectorStoreQueryProvider.Builder {
+    public static class Builder<Key>
+        extends JDBCVectorStoreQueryProvider.Builder<Key> {
 
         /**
          * The data source
@@ -793,7 +794,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
 
 
         @SuppressFBWarnings("EI_EXPOSE_REP2")
-        public Builder withDataSource(DataSource dataSource) {
+        public Builder<Key> withDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
             return this;
         }
@@ -803,7 +804,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          * @param collectionsTable the collections table name
          * @return the builder
          */
-        public Builder withCollectionsTable(String collectionsTable) {
+        public Builder<Key> withCollectionsTable(String collectionsTable) {
             this.collectionsTable = validateSQLidentifier(collectionsTable);
             return this;
         }
@@ -813,7 +814,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          * @param prefixForCollectionTables the prefix for collection tables
          * @return the builder
          */
-        public Builder withPrefixForCollectionTables(String prefixForCollectionTables) {
+        public Builder<Key> withPrefixForCollectionTables(String prefixForCollectionTables) {
             this.prefixForCollectionTables = validateSQLidentifier(prefixForCollectionTables);
             return this;
         }
@@ -824,7 +825,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          * @return the builder
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2")
-        public Builder withObjectMapper(
+        public Builder<Key> withObjectMapper(
             ObjectMapper objectMapper) {
             this.objectMapper = objectMapper;
             return this;
@@ -836,7 +837,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          *                          {@link StringTypeMapping#USE_VARCHAR}
          * @return the builder
          */
-        public Builder withStringTypeMapping (StringTypeMapping stringTypeMapping) {
+        public Builder<Key> withStringTypeMapping (StringTypeMapping stringTypeMapping) {
             this.stringTypeMapping = stringTypeMapping;
             return this;
         }
@@ -847,7 +848,7 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          *                           is 2000.
          * @return then builder
          */
-        public Builder withDefaultVarcharSize (int defaultVarcharSize) {
+        public Builder<Key> withDefaultVarcharSize (int defaultVarcharSize) {
             this.defaultVarcharSize = defaultVarcharSize;
             return this;
         }
@@ -857,10 +858,9 @@ public class OracleVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider
          * @return the query provider
          */
         @Override
-        public OracleVectorStoreQueryProvider build() {
-            return new OracleVectorStoreQueryProvider(dataSource, collectionsTable,
+        public OracleVectorStoreQueryProvider<Key> build() {
+            return new OracleVectorStoreQueryProvider<Key>(dataSource, collectionsTable,
                 prefixForCollectionTables, defaultVarcharSize, stringTypeMapping, objectMapper);
         }
     }
 }
-

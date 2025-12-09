@@ -49,8 +49,19 @@ public class JDBCVectorStore implements SQLVectorStore {
      *
      * @return the builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static Builder<String> builder() {
+        Builder<String> builder = new Builder<>();
+        return builder;
+    }
+
+    /**
+     * Creates a builder for the vector store with the specified Key type.
+     *
+     * @param <Key> the key type
+     * @return the builder
+     */
+    public static <Key> Builder<Key> getGenericBuilder() {
+        return new Builder<Key>();
     }
 
     /**
@@ -64,9 +75,9 @@ public class JDBCVectorStore implements SQLVectorStore {
     public <Key, Record> VectorStoreRecordCollection<Key, Record> getCollection(
         @Nonnull String collectionName,
         @Nonnull VectorStoreRecordCollectionOptions<Key, Record> options) {
-        if (!options.getKeyClass().equals(String.class)) {
-            throw new SKException("JDBC only supports string keys");
-        }
+//        if (!options.getKeyClass().equals(String.class)) {
+//            throw new SKException("JDBC only supports string keys");
+//        }
         if (options.getRecordClass() == null) {
             throw new SKException("Record class is required");
         }
@@ -81,11 +92,12 @@ public class JDBCVectorStore implements SQLVectorStore {
                     options.getRecordDefinition());
         }
 
-        JDBCVectorStoreRecordCollectionOptions<Record> jdbcOptions = (JDBCVectorStoreRecordCollectionOptions<Record>) options;
-        return (VectorStoreRecordCollection<Key, Record>) new JDBCVectorStoreRecordCollection<>(
+        JDBCVectorStoreRecordCollectionOptions<Key, Record> jdbcOptions = (JDBCVectorStoreRecordCollectionOptions<Key, Record>) options;
+        return (VectorStoreRecordCollection<Key, Record>) new JDBCVectorStoreGenericRecordCollection<>(
             dataSource,
             collectionName,
-            JDBCVectorStoreRecordCollectionOptions.<Record>builder()
+                JDBCVectorStoreRecordCollectionOptions.<Key, Record>genericBuilder()
+                .withKeyClass(jdbcOptions.getKeyClass())
                 .withCollectionsTableName(jdbcOptions.getCollectionsTableName())
                 .withPrefixForCollectionTables(jdbcOptions.getPrefixForCollectionTables())
                 .withQueryProvider(jdbcOptions.getQueryProvider() == null ? queryProvider
@@ -105,13 +117,13 @@ public class JDBCVectorStore implements SQLVectorStore {
      * @param <Record>         The record type.
      * @return The collection.
      */
-    public <Record> VectorStoreRecordCollection<String, Record> getCollection(
+    public <Key, Record> VectorStoreRecordCollection<Key, Record> getCollection(
         @Nonnull String collectionName,
         @Nonnull Class<Record> recordClass,
         @Nullable VectorStoreRecordDefinition recordDefinition) {
         return getCollection(
             collectionName,
-            JDBCVectorStoreRecordCollectionOptions.<Record>builder()
+            JDBCVectorStoreRecordCollectionOptions.<Key, Record>genericBuilder()
                 .withRecordClass(recordClass)
                 .withRecordDefinition(recordDefinition)
                 .withQueryProvider(this.queryProvider)
@@ -125,7 +137,7 @@ public class JDBCVectorStore implements SQLVectorStore {
      */
     @Override
     public Mono<List<String>> getCollectionNamesAsync() {
-        return Mono.fromCallable(queryProvider::getCollectionNames)
+        return Mono.<List<String>>fromCallable(queryProvider::getCollectionNames)
             .subscribeOn(Schedulers.boundedElastic());
     }
 
@@ -141,10 +153,10 @@ public class JDBCVectorStore implements SQLVectorStore {
     /**
      * Builder for creating a {@link JDBCVectorStore}.
      */
-    public static class Builder {
+    public static class Builder<Key> {
 
         private DataSource dataSource;
-        private JDBCVectorStoreOptions options;
+        private JDBCVectorStoreOptions<Key> options;
 
         /**
          * Sets the data source.
@@ -153,7 +165,7 @@ public class JDBCVectorStore implements SQLVectorStore {
          * @return the builder
          */
         @SuppressFBWarnings("EI_EXPOSE_REP2")
-        public Builder withDataSource(DataSource dataSource) {
+        public Builder<Key> withDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
             return this;
         }
@@ -164,7 +176,7 @@ public class JDBCVectorStore implements SQLVectorStore {
          * @param options the options
          * @return the builder
          */
-        public Builder withOptions(JDBCVectorStoreOptions options) {
+        public Builder<Key> withOptions(JDBCVectorStoreOptions<Key> options) {
             this.options = options;
             return this;
         }

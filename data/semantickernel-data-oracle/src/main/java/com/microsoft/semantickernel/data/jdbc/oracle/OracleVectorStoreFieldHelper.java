@@ -62,6 +62,13 @@ class OracleVectorStoreFieldHelper {
     private static final HashMap<Class<?>, String> supportedKeyTypes = new HashMap();
     static {
         supportedKeyTypes.put(String.class, String.format(OracleDataTypesMapping.STRING_VARCHAR, 255));
+        supportedKeyTypes.put(short.class, OracleDataTypesMapping.SHORT);
+        supportedKeyTypes.put(Short.class, OracleDataTypesMapping.SHORT);
+        supportedKeyTypes.put(int.class, OracleDataTypesMapping.INTEGER);
+        supportedKeyTypes.put(Integer.class, OracleDataTypesMapping.INTEGER);
+        supportedKeyTypes.put(long.class, OracleDataTypesMapping.LONG);
+        supportedKeyTypes.put(Long.class, OracleDataTypesMapping.LONG);
+        supportedKeyTypes.put(UUID.class, OracleDataTypesMapping.UUID);
     }
 
     /**

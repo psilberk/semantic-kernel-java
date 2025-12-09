@@ -28,7 +28,7 @@ import javax.sql.DataSource;
  * The HSQLDB vector store query provider.
  * Provides the necessary methods to interact with a HSQLDB vector store and vector store collections.
  */
-public class HSQLDBVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider {
+public class HSQLDBVectorStoreQueryProvider extends JDBCVectorStoreQueryProvider<String> {
 
     private final ObjectMapper objectMapper;
 

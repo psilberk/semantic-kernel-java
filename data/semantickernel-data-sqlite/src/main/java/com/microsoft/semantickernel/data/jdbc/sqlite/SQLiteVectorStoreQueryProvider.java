@@ -25,7 +25,7 @@ import java.util.List;
  * A query provider for a vector store in SQLite.
  */
 public class SQLiteVectorStoreQueryProvider extends
-    JDBCVectorStoreQueryProvider implements SQLVectorStoreQueryProvider {
+    JDBCVectorStoreQueryProvider<String> implements SQLVectorStoreQueryProvider<String> {
 
     private final DataSource dataSource;
     private final ObjectMapper objectMapper;

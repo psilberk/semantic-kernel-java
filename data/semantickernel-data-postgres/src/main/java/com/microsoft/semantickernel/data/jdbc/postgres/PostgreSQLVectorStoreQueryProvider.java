@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * vector store and vector store collections.
  */
 public class PostgreSQLVectorStoreQueryProvider extends
-    JDBCVectorStoreQueryProvider implements SQLVectorStoreQueryProvider {
+    JDBCVectorStoreQueryProvider<String> implements SQLVectorStoreQueryProvider<String> {
     private final String collectionsTable;
     private final String prefixForCollectionTables;
     private final ObjectMapper objectMapper;

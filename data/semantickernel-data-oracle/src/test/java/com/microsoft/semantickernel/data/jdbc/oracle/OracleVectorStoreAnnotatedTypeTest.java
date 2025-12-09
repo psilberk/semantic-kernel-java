@@ -100,7 +100,7 @@ public class OracleVectorStoreAnnotatedTypeTest extends OracleCommonVectorStoreR
             Arrays.asList(keyField, dataTypeField, dataField, dummyVector)
         );
 
-        OracleVectorStoreQueryProvider queryProvider = OracleVectorStoreQueryProvider.builder()
+        OracleVectorStoreQueryProvider<String> queryProvider = OracleVectorStoreQueryProvider.<String>builder()
             .withDataSource(DATA_SOURCE)
             .build();
 
