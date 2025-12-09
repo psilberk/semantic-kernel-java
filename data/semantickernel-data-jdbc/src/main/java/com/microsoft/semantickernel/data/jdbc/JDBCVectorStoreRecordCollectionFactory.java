@@ -20,7 +20,7 @@ public interface JDBCVectorStoreRecordCollectionFactory {
      * @param <Record>         The type of record in the collection.
      * @return The new JDBC vector store record collection.
      */
-    <Key, Record> JDBCVectorStoreRecordCollection<Key, Record> createVectorStoreRecordCollection(
+    <Key, Record> JDBCVectorStoreGenericRecordCollection<Key, Record> createVectorStoreRecordCollection(
         DataSource dataSource,
         String collectionName,
         Class<Record> recordClass,

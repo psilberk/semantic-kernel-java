@@ -49,7 +49,18 @@ public class JDBCVectorStore implements SQLVectorStore {
      *
      * @return the builder
      */
-    public static <Key> Builder<Key> builder() {
+    public static Builder<String> builder() {
+        Builder<String> builder = new Builder<>();
+        return builder;
+    }
+
+    /**
+     * Creates a builder for the vector store with the specified Key type.
+     *
+     * @param <Key> the key type
+     * @return the builder
+     */
+    public static <Key> Builder<Key> getGenericBuilder() {
         return new Builder<Key>();
     }
 
@@ -82,7 +93,7 @@ public class JDBCVectorStore implements SQLVectorStore {
         }
 
         JDBCVectorStoreRecordCollectionOptions<Key, Record> jdbcOptions = (JDBCVectorStoreRecordCollectionOptions<Key, Record>) options;
-        return (VectorStoreRecordCollection<Key, Record>) new JDBCVectorStoreRecordCollection<>(
+        return (VectorStoreRecordCollection<Key, Record>) new JDBCVectorStoreGenericRecordCollection<>(
             dataSource,
             collectionName,
                 JDBCVectorStoreRecordCollectionOptions.<Key, Record>genericBuilder()
